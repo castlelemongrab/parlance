@@ -1,0 +1,13 @@
+{
+  "name": "parlaid",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "A Parler client library",
+  "repository": "https://github.com/castle-lemongrab/parlaid",
+  "dependencies": {
+    "bent": "^7.3.6"
+  },
+  "black": {
+    "lives": "matter"
+  }
+}
