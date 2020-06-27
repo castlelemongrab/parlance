@@ -307,7 +307,8 @@ const Client = class extends Base {
 
       /* Exit conditions */
       let is_final_page = !(
-        is_first_page || results.length >= this.page_size
+        record.last !== true ||
+          (is_first_page || results.length >= this.page_size)
       );
 
       if (!results.length) {
