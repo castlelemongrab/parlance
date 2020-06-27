@@ -352,12 +352,31 @@ const Client = class extends Base {
     );
   }
 
+  async print_comments (_profile) {
+
+    return await this._paged_request(
+      _profile, this._request_comments.bind(this), (_c) => (_c.comments|| [])
+    );
+  }
+
+
   /** API request helpers **/
 
   async _request_creator (_profile, _start_ts) {
 
     let response = await this._paged_request_one(
       'v1/post/creator', _profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
+  async _request_comments (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/comment/creator', _profile, _start_ts, (_profile) => {
+        return `username=${encodeURIComponent(_profile.username)}`;
+      }
     );
 
     return await response.json();
@@ -484,17 +503,22 @@ const Client = class extends Base {
     return true;
   }
 
-  async _paged_request_one (_url, _profile, _start_key) {
+  async _paged_request_one (_url, _profile, _start_key, _url_callback) {
 
     let username = (_profile || {}).username;
-    let user_id = encodeURIComponent(_profile._id);
-    let limit = encodeURIComponent(this.page_size);
 
     let request = this._create_client(
       this._create_extra_headers(username)
     );
 
-    let url = `${_url}?id=${user_id}&limit=${limit}`;
+    let url_callback = (
+      _url_callback || ((_profile) => {
+        return `id=${encodeURIComponent(_profile._id)}`;
+      })
+    );
+
+    let qs = url_callback(_profile);
+    let url = `${_url}?${qs}&limit=${encodeURIComponent(this.page_size)}`;
 
     if (_start_key) {
       url += `&startkey=${encodeURIComponent(_start_key)}`;
@@ -564,6 +588,16 @@ const Arguments = class extends Base {
             describe: 'The name of the user'
           }
         }
+      )
+      .command(
+        'comments', 'Fetch all comments for a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
       );
 
     return this;
@@ -586,7 +620,7 @@ const CLI = class extends Base {
 
   async run () {
 
-    let config;
+    let config, profile;
     let args = this._args.parse();
 
     try {
@@ -603,13 +637,19 @@ const CLI = class extends Base {
     switch (args._[0]) {
 
       case 'profile':
-        this._out.stdout(JSON.stringify(await client.profile(args.u)));
+        profile = await client.profile(args.u);
+        this._out.stdout(JSON.stringify(profile));
         this._out.stdout("\n");
         break;
 
       case 'posts':
-        let profile = await client.profile(args.u);
+        profile = await client.profile(args.u);
         await client.print_posts(profile);
+        break;
+
+      case 'comments':
+        profile = await client.profile(args.u);
+        await client.print_comments(profile);
         break;
 
       default:
