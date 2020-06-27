@@ -5,7 +5,8 @@
   "description": "A Parler client library",
   "repository": "https://github.com/castle-lemongrab/parlaid",
   "dependencies": {
-    "bent": "^7.3.6"
+    "bent": "^7.3.6",
+    "yargs": "^15.3.1"
   },
   "black": {
     "lives": "matter"

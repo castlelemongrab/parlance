@@ -2,9 +2,8 @@
 
 'use strict';
 
-const crypto = require('crypto'); /* RNG */
 const fs = require('fs').promises; /* Kept them */
-const bent = require('bent'); /* Get it? */
+const bent = require('bent'); /* Get */
 
 /**
   A base class for most other classes. Accepts options.
@@ -58,6 +57,15 @@ const Output = class {
   }
 
   /**
+    Terminate execution.
+    @arg _status {number} - The process exit code. Defaults to non-zero.
+  **/
+  exit (_status) {
+
+    throw new Error(`Process exited with status ${_status || 127}\n`);
+  }
+
+  /**
     Raise a fatal error and terminate execution.
     @arg _message {string} - The message to emit.
     @arg _status {number} - The process exit code. Defaults to non-zero.
@@ -65,8 +73,7 @@ const Output = class {
   fatal (_message, _status) {
 
     this.stderr(`[fatal] ${_message}\n`, true);
-    this.stderr(`Process exited with status ${_status || 127}\n`, true);
-    throw new Error('Fatal error');
+    throw new Error(`Process exited with status ${_status || 127}\n`);
   }
 
   /**
@@ -129,6 +136,15 @@ const OutputNode = class extends Output {
   }
 
   /**
+    Terminate execution.
+    @arg _status {number} - The process exit code. Defaults to non-zero.
+  **/
+  exit (_status) {
+
+    this._process.exit(_status);
+  }
+
+  /**
     Raise a fatal error and terminate execution.
   **/
   fatal (_message, _status) {
@@ -139,7 +155,7 @@ const OutputNode = class extends Output {
       /* Ignore exception */
     }
 
-    this._process.exit(_status);
+    this.exit(_status);
   }
 };
 
@@ -198,7 +214,10 @@ const Ratelimit = class extends Base {
 
     super(_headers);
 
+    /* To do: this probably isn't ideal */
+    this._crypto = require('crypto');
     this._rng_divisor = 64;
+
     return this;
   }
 
@@ -226,7 +245,7 @@ const Ratelimit = class extends Base {
 
     return new Promise((_resolve) => {
       setTimeout(_resolve, Math.floor(
-        (crypto.randomBytes(1)[0] / this._rng_divisor) * 1000
+        (this._crypto.randomBytes(1)[0] / this._rng_divisor) * 1000
       ));
     });
   }
@@ -326,7 +345,7 @@ const Client = class extends Base {
     return await response.json();
   }
 
-  async posts (_profile) {
+  async print_posts (_profile) {
 
     return await this._paged_request(
       _profile, this._request_creator.bind(this), (_c) => (_c.posts || [])
@@ -490,51 +509,126 @@ const Client = class extends Base {
 };
 
 /**
-  Temporary CLI implementation.
-  @arg _args {object} - A key/value pair of arguments in bare object form.
+  An argument parser for command-line invocation.
+  @extends Base
 **/
-async function parlaid (_args) {
+const Arguments = class extends Base {
 
-  let config = {};
-  let out = new Out.Node();
+  constructor (_options) {
 
-  try {
-    let json_config = await fs.readFile('config/auth.json');
-    config = JSON.parse(json_config);
-  } catch (_e) {
-    out.fatal("Unable to read config/auth.json", 2);
+    super(_options);
+
+    /* To do: this probably isn't ideal */
+    this._yargs = require('yargs');
+
+    return this._setup();
   }
 
-  if (!_args.user) {
-    out.fatal('Please specifiy a user name', 3);
+  parse () {
+
+    return this._yargs.argv;
   }
 
-  let credentials = new Credentials(config.mst, config.jst);
-  let client = new Client(credentials);
+  usage () {
 
-  let profile = await client.profile(_args.user);
-  await client.posts(profile);
+    return this._yargs.showHelp();
+  }
+
+  _setup () {
+
+    this._yargs.demandCommand(1)
+      .option(
+        'a', {
+          type: 'string',
+          alias: 'authorization',
+          default: 'config/auth.json',
+          describe: 'Authorization file'
+        }
+      )
+      .command(
+        'profile', 'Fetch a user profile', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
+        'posts', 'Fetch all posts for a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      );
+
+    return this;
+  }
 };
 
 /**
-  Temporary CLI entry point.
-  @arg _argv {array} - An array of command-line arguments
+  The command-line interface to Parlaid.
+  @extends Base
 **/
-function main (_argv) {
+const CLI = class extends Base {
 
-  let out = new Out.Node();
+  constructor (_options) {
 
-  if (_argv.length != 3) {
-    out.fatal(`Usage: ${_argv[1]} user`, 1);
-  };
+    super(_options);
 
-  let args = {
-    user: _argv[2]
-  };
+    this._out = new Out.Node();
+    this._args = new Arguments();
+  }
 
-  return parlaid(args);
+  async run () {
+
+    let config;
+    let args = this._args.parse();
+
+    try {
+      let json_config = await fs.readFile(args.a);
+      config = JSON.parse(json_config);
+    } catch (_e) {
+      this._out.fatal(`Unable to read authorization data from ${args.a}`, 2);
+    }
+
+    let credentials = new Credentials(config.mst, config.jst);
+    let client = new Client(credentials);
+
+    /* Command dispatch */
+    switch (args._[0]) {
+
+      case 'profile':
+        this._out.stdout(JSON.stringify(await client.profile(args.u)));
+        this._out.stdout("\n");
+        break;
+
+      case 'posts':
+        let profile = await client.profile(args.u);
+        await client.print_posts(profile);
+        break;
+
+      default:
+        this._args.usage();
+        this._out.exit(1);
+        break;
+    }
+  }
+};
+
+/**
+  Application entry point
+**/
+async function main () {
+
+  let cli = new CLI();
+  await cli.run();
 }
 
-/* Entry point */
-main(require('process').argv);
+// 🚀
+main();
 
