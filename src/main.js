@@ -581,6 +581,14 @@ const Client = class extends Base {
     );
   }
 
+  async print_echoes (_profile) {
+
+    this.page_size = 20;
+    return this._print_generic(
+      _profile, '_request_creator', 'postRefs'
+    );
+  }
+
   async print_following (_profile) {
 
     this.page_size = 10;
@@ -674,6 +682,16 @@ const Arguments = class extends Base {
         }
       )
       .command(
+        'echoes', 'Fetch all echoes for a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
         'following', 'Fetch all users followed by a user', {
           u: {
             type: 'string',
@@ -755,6 +773,11 @@ const CLI = class extends Base {
       case 'posts':
         profile = await client.profile(args.u);
         await client.print_posts(profile);
+        break;
+
+      case 'echoes':
+        profile = await client.profile(args.u);
+        await client.print_echoes(profile);
         break;
 
       case 'comments':
