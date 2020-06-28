@@ -58,7 +58,7 @@ of speech cannot, will not, and has no responsibility to control the behavior of
 others – in any jurisdiction, on any of Jupiter's mighty moons, or anywhere
 within the known universe – past, present, or future.
 
-Due to the specific and peculiar nature of Parler's engineering design, the
+Due to the specific nature and quality of Parler's engineering design, the
 speech contained within this repository is the sole product of unrelated
 industry experience and third-party documentation. No act of disassembly,
 decompilation, reverse engineering, trade secret violation – nor any other
