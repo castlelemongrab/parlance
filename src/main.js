@@ -551,6 +551,15 @@ const Client = class extends Base {
     return await response.json();
   }
 
+  async _request_votes (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/post/creator/liked', _profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
   async _print_generic (_profile, _fn_name, _key) {
 
     return await this._paged_request(
@@ -624,6 +633,14 @@ const Client = class extends Base {
 
     return this._print_generic(
       { _id: _id }, '_request_post_comments', 'comments'
+    );
+  }
+
+  async print_votes (_profile) {
+
+    this.page_size = 10;
+    return this._print_generic(
+      _profile, '_request_votes', 'posts'
     );
   }
 };
@@ -730,6 +747,16 @@ const Arguments = class extends Base {
             describe: 'The unique identifier of the post'
           }
         }
+      )
+      .command(
+        'votes', 'Fetch all votes made by a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
       );
 
     return this;
@@ -806,6 +833,11 @@ const CLI = class extends Base {
       case 'followers':
         profile = await client.profile(args.u);
         await client.print_followers(profile);
+        break;
+
+      case 'votes':
+        profile = await client.profile(args.u);
+        await client.print_votes(profile);
         break;
 
       default:
