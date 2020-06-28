@@ -292,6 +292,7 @@ const Client = class extends Base {
     );
 
     this._credentials = _credentials;
+    this._page_size_temporarily_disabled = false;
     this._url = (this.options.url || 'https://api.parler.com/');
 
     this._ua = (
@@ -326,96 +327,10 @@ const Client = class extends Base {
     return this._page_size;
   }
 
-  /** API endpoints **/
+  set page_size (_page_size) {
 
-  async profile (_username) {
-
-    let request = this._create_client(
-      this._create_extra_headers(_username)
-    );
-
-    let username = encodeURIComponent(_username);
-    let url = `v1/profile?username=${username}`;
-
-    this._out.log_network(url);
-    await this._ratelimit.wait();
-
-    /* HTTPS request */
-    let response = await request(url);
-    return await response.json();
-  }
-
-  async print_posts (_profile) {
-
-    return await this._paged_request(
-      _profile, this._request_creator.bind(this),
-        (_c) => (_c.posts || [])
-    );
-  }
-
-  async print_following (_profile) {
-
-    return await this._paged_request(
-      _profile, this._request_following.bind(this),
-        (_f) => (_f.followees || [])
-    );
-  }
-
-  async print_followers (_profile) {
-
-    return await this._paged_request(
-      _profile, this._request_followers.bind(this),
-        (_f) => (_f.followers || [])
-    );
-  }
-
-  async print_comments (_profile) {
-
-    return await this._paged_request(
-      _profile, this._request_comments.bind(this),
-        (_c) => (_c.comments || [])
-    );
-  }
-
-
-  /** API request helpers **/
-
-  async _request_creator (_profile, _start_ts) {
-
-    let response = await this._paged_request_one(
-      'v1/post/creator', _profile, _start_ts
-    );
-
-    return await response.json();
-  }
-
-  async _request_following (_profile, _start_ts) {
-
-    let response = await this._paged_request_one(
-      'v1/follow/following', _profile, _start_ts
-    );
-
-    return await response.json();
-  }
-
-  async _request_followers (_profile, _start_ts) {
-
-    let response = await this._paged_request_one(
-      'v1/follow/followers', _profile, _start_ts
-    );
-
-    return await response.json();
-  }
-
-  async _request_comments (_profile, _start_ts) {
-
-    let response = await this._paged_request_one(
-      'v1/comment/creator', _profile, _start_ts, (_profile) => {
-        return `username=${encodeURIComponent(_profile.username)}`;
-      }
-    );
-
-    return await response.json();
+    let page_size = parseInt(_page_size, 10);
+    this._page_size = (page_size > 0 ? page_size : this._page_size);
   }
 
   /** HTTPS functions **/
@@ -475,6 +390,12 @@ const Client = class extends Base {
 
   /** Paging **/
 
+  _temporarily_disable_page_size () {
+
+    this._page_size_temporarily_disabled = true;
+    return this;
+  }
+
   async _paged_request (_profile, _request_callback, _reduce_callback,
                         _result_callback, _start_callback, _end_callback) {
 
@@ -531,6 +452,9 @@ const Client = class extends Base {
       }
     }
 
+    /* Some APIs don't use the limit parameter */
+    this._page_size_temporarily_disabled = false;
+
     if (!end_cb()) {
       throw new Error('Result dispatch: completion failed');
     }
@@ -554,7 +478,12 @@ const Client = class extends Base {
     );
 
     let qs = url_callback(_profile);
-    let url = `${_url}?${qs}&limit=${encodeURIComponent(this.page_size)}`;
+    let url = `${_url}?${qs}`;
+
+    /* Some APIs don't use the limit parameter */
+    if (!this._page_size_temporarily_disabled) {
+      url = `${url}&limit=${encodeURIComponent(this.page_size)}`;
+    }
 
     if (_start_key) {
       url += `&startkey=${encodeURIComponent(_start_key)}`;
@@ -565,6 +494,125 @@ const Client = class extends Base {
 
     /* Issue actual HTTPS request */
     return await request(url);
+  }
+
+  /** API request helpers **/
+
+  async _request_creator (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/post/creator', _profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
+  async _request_following (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/follow/following', _profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
+  async _request_followers (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/follow/followers', _profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
+  async _request_user_comments (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/comment/creator', _profile, _start_ts, (_profile) => {
+        return `username=${encodeURIComponent(_profile.username)}`;
+      }
+    );
+
+    return await response.json();
+  }
+
+  async _request_post_comments (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/comment', _profile, _start_ts, (_profile) => {
+        return `id=${encodeURIComponent(_profile._id)}&reverse=true`;
+      }
+    );
+
+    return await response.json();
+  }
+
+  async _print_generic (_profile, _fn_name, _key) {
+
+    return await this._paged_request(
+      _profile, this[_fn_name].bind(this), (_o) => (_o[_key] || [])
+    );
+  }
+
+  /** API endpoints **/
+
+  async profile (_username) {
+
+    let request = this._create_client(
+      this._create_extra_headers(_username)
+    );
+
+    let username = encodeURIComponent(_username);
+    let url = `v1/profile?username=${username}`;
+
+    this._out.log_network(url);
+    await this._ratelimit.wait();
+
+    /* HTTPS request */
+    let response = await request(url);
+    return await response.json();
+  }
+
+  async print_posts (_profile) {
+
+    this.page_size = 20;
+    return this._print_generic(
+      _profile, '_request_creator', 'posts'
+    );
+  }
+
+  async print_following (_profile) {
+
+    this.page_size = 10;
+    return this._print_generic(
+      _profile, '_request_following', 'followees'
+    );
+  }
+
+  async print_followers (_profile) {
+
+    this.page_size = 10;
+    return this._print_generic(
+      _profile, '_request_followers', 'followers'
+    );
+  }
+
+  async print_user_comments (_profile) {
+
+    this.page_size = 10;
+    return this._print_generic(
+      _profile, '_request_user_comments', 'comments'
+    );
+  }
+
+  async print_post_comments (_id) {
+
+    this.page_size = 10;
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._print_generic(
+      { _id: _id }, '_request_post_comments', 'comments'
+    );
   }
 };
 
@@ -646,12 +694,18 @@ const Arguments = class extends Base {
         }
       )
       .command(
-        'comments', 'Fetch all comments for a user', {
+        'comments', 'Fetch all comments for a user or post', {
           u: {
             type: 'string',
+            conflicts: 'i',
             alias: 'username',
-            demandOption: true,
             describe: 'The name of the user'
+          },
+          i: {
+            type: 'string',
+            conflicts: 'u',
+            alias: 'identifier',
+            describe: 'The unique identifier of the post'
           }
         }
       );
@@ -704,8 +758,17 @@ const CLI = class extends Base {
         break;
 
       case 'comments':
-        profile = await client.profile(args.u);
-        await client.print_comments(profile);
+        if (!this._yargs_check_comment_options(args)) {
+          this._args.usage();
+          this._out.stderr("Missing required argument: u or i\n");
+          this._out.exit(1);
+        }
+        if (args.i) {
+          await(client.print_post_comments(args.i));
+        } else {
+          profile = await client.profile(args.u);
+          await client.print_user_comments(profile);
+        }
         break;
 
       case 'following':
@@ -723,6 +786,15 @@ const CLI = class extends Base {
         this._out.exit(1);
         break;
     }
+  }
+
+  _yargs_check_comment_options(_args) {
+
+    /* Intentional == */
+    return (
+      (_args.i != null && _args.u == null)
+        || (_args.u != null || _args.i == null)
+    );
   }
 };
 
