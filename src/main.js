@@ -164,6 +164,7 @@ const OutputNode = class extends Output {
   All available output classes.
 **/
 const Out = {
+  Default: OutputNode,
   Base: Output, Node: OutputNode
 };
 
@@ -211,13 +212,16 @@ const Credentials = class extends Base {
 **/
 const Ratelimit = class extends Base {
 
-  constructor (_headers) {
+  constructor (_headers, _options) {
 
-    super(_headers);
+    super(_options);
 
     /* To do: this probably isn't ideal */
     this._crypto = require('crypto');
+
     this._rng_divisor = 64;
+    this._headers = (_headers || {});
+    this._out = (this.options.output || new Out.Default());
 
     return this;
   }
@@ -259,16 +263,20 @@ const Ratelimit = class extends Base {
 **/
 const Session = class extends Base {
 
-  constructor (_credentials, _headers) {
+  constructor (_credentials, _headers, _options) {
 
-    super(_headers);
+    super(_options);
 
+    this.headers = _headers;
     this._credentials = _credentials;
+    this._out = (this.options.output || new Out.Default());
+
     return this;
   }
 
   set headers (_headers) {
 
+    this._headers = (_headers || {});
     return this;
   }
 };
@@ -283,9 +291,9 @@ const Client = class extends Base {
 
     super(_options);
 
-    this._out = new Out.Node();
     this._session = new Session();
     this._ratelimit = new Ratelimit();
+    this._out = (this.options.output || new Out.Default());
 
     this._page_size = (
       this.options.page_size ?
@@ -497,7 +505,9 @@ const Client = class extends Base {
     await this._ratelimit.wait();
 
     /* Issue actual HTTPS request */
-    return await request(url);
+    let rv = await request(url);
+    console.log(rv);
+    return rv;
   }
 
   /** API request helpers **/
@@ -857,15 +867,8 @@ const CLI = class extends Base {
   }
 };
 
-/**
-  Application entry point
-**/
-async function main () {
-
-  let cli = new CLI();
-  await cli.run();
-}
-
-// 🚀
-main();
+/* Export classes */
+module.exports = {
+  CLI: CLI
+};
 
