@@ -14,7 +14,9 @@ First, run `npm install` to fetch all required dependencies.
 Then, log in to Parler using an ordinary web browser. Use that browser's
 development tools and/or cookie storage interface to capture the `MST` (Master
 Session Token) and `JST` (a shorter-lived session token). Replace the empty
-strings in `config/auth.json` with these values. Future automation of this
+strings in `config/auth.json` with these values. If your browser supplies you
+with URI-encoded versions of these values, you must decode them prior to use –
+the utility expects them in their raw, unencoded form. Future automation of this
 process is unlikely to be feasible.
 
 If you don't know what this means or how to accomplish it, please do not use

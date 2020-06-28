@@ -338,10 +338,13 @@ const Client = class extends Base {
 
   _create_client (_headers) {
 
+    let mst = encodeURIComponent(this._credentials.mst);
+    let jst = encodeURIComponent(this._credentials.jst);
+
     let headers = Object.assign(_headers, {
       'User-Agent': this.user_agent,
       'Origin': 'https://parler.com',
-      'Cookie': `mst=${encodeURIComponent(this._credentials.mst)}`
+      'Cookie': `jst=${jst}; mst=${mst}`
     });
 
     return bent(this.base_url, 'GET', null, 200, headers);
