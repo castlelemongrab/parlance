@@ -3,7 +3,8 @@
 'use strict';
 
 const fs = require('fs').promises; /* Kept them */
-const bent = require('bent'); /* Get */
+const bent = require('bent'); /* Get bent */
+const iso8601x = require('./iso8601x'); /* It's time */
 
 /**
   A base class for most other classes. Accepts options.
