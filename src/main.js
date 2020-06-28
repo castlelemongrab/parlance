@@ -348,14 +348,32 @@ const Client = class extends Base {
   async print_posts (_profile) {
 
     return await this._paged_request(
-      _profile, this._request_creator.bind(this), (_c) => (_c.posts || [])
+      _profile, this._request_creator.bind(this),
+        (_c) => (_c.posts || [])
+    );
+  }
+
+  async print_following (_profile) {
+
+    return await this._paged_request(
+      _profile, this._request_following.bind(this),
+        (_f) => (_f.followees || [])
+    );
+  }
+
+  async print_followers (_profile) {
+
+    return await this._paged_request(
+      _profile, this._request_followers.bind(this),
+        (_f) => (_f.followers || [])
     );
   }
 
   async print_comments (_profile) {
 
     return await this._paged_request(
-      _profile, this._request_comments.bind(this), (_c) => (_c.comments|| [])
+      _profile, this._request_comments.bind(this),
+        (_c) => (_c.comments || [])
     );
   }
 
@@ -366,6 +384,24 @@ const Client = class extends Base {
 
     let response = await this._paged_request_one(
       'v1/post/creator', _profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
+  async _request_following (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/follow/following', _profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
+  async _request_followers (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/follow/followers', _profile, _start_ts
     );
 
     return await response.json();
@@ -590,6 +626,26 @@ const Arguments = class extends Base {
         }
       )
       .command(
+        'following', 'Fetch all users followed by a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
+        'followers', 'Fetch all followers of a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
         'comments', 'Fetch all comments for a user', {
           u: {
             type: 'string',
@@ -650,6 +706,16 @@ const CLI = class extends Base {
       case 'comments':
         profile = await client.profile(args.u);
         await client.print_comments(profile);
+        break;
+
+      case 'following':
+        profile = await client.profile(args.u);
+        await client.print_following(profile);
+        break;
+
+      case 'followers':
+        profile = await client.profile(args.u);
+        await client.print_followers(profile);
         break;
 
       default:
