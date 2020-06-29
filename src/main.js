@@ -360,6 +360,10 @@ const Client = class extends Base {
 
   _create_extra_headers (_username) {
 
+    if (!_username) {
+      return {};
+    }
+
     let username = encodeURIComponent(_username);
 
     return {
@@ -477,28 +481,33 @@ const Client = class extends Base {
 
   async _paged_request_one (_url, _profile, _start_key, _url_callback) {
 
-    let username = (_profile || {}).username;
+    let url = _url;
+    let profile = (_profile || {});
+    let username = profile.username;
 
     let request = this._create_client(
       this._create_extra_headers(username)
     );
 
     let url_callback = (
-      _url_callback || ((_profile) => {
-        return `id=${encodeURIComponent(_profile._id)}`;
+      _url_callback || ((_p) => {
+        return `id=${encodeURIComponent(_p._id)}`;
       })
     );
 
-    let qs = url_callback(_profile);
-    let url = `${_url}?${qs}`;
+    let qs = (url_callback(profile) || '');
 
     /* Some APIs don't use the limit parameter */
     if (!this._page_size_temporarily_disabled) {
-      url = `${url}&limit=${encodeURIComponent(this.page_size)}`;
+      qs = `${qs}&limit=${encodeURIComponent(this.page_size)}`;
     }
 
     if (_start_key) {
-      url += `&startkey=${encodeURIComponent(_start_key)}`;
+      qs += `&startkey=${encodeURIComponent(_start_key)}`;
+    }
+
+    if (qs) {
+      url = `${_url}?${qs}`;
     }
 
     this._out.log_network(url);
@@ -506,11 +515,19 @@ const Client = class extends Base {
 
     /* Issue actual HTTPS request */
     let rv = await request(url);
-    console.log(rv);
     return rv;
   }
 
   /** API request helpers **/
+
+  async _request_feed (_profile, _start_ts) {
+
+    let response = await this._paged_request_one(
+      'v1/feed', _profile, _start_ts, () => null
+    );
+
+    return await response.json();
+  }
 
   async _request_creator (_profile, _start_ts) {
 
@@ -594,6 +611,22 @@ const Client = class extends Base {
     /* HTTPS request */
     let response = await request(url);
     return await response.json();
+  }
+
+  async print_feed () {
+
+    this.page_size = 10;
+    return this._print_generic(
+      null, '_request_feed', 'posts'
+    );
+  }
+
+  async print_feed_echoes () {
+
+    this.page_size = 10;
+    return this._print_generic(
+      null, '_request_feed', 'postRefs'
+    );
   }
 
   async print_posts (_profile) {
@@ -691,6 +724,13 @@ const Arguments = class extends Base {
           default: 'config/auth.json',
           describe: 'Authorization file'
         }
+      )
+      .command(
+        'feed', 'Fetch your own feed of posts'
+      )
+
+      .command(
+        'feedechoes', 'Fetch your own feed of echoed posts'
       )
       .command(
         'profile', 'Fetch a user profile', {
@@ -809,6 +849,14 @@ const CLI = class extends Base {
         profile = await client.profile(args.u);
         this._out.stdout(JSON.stringify(profile));
         this._out.stdout("\n");
+        break;
+
+      case 'feed':
+        await client.print_feed();
+        break;
+
+      case 'feedechoes':
+        await client.print_feed_echoes();
         break;
 
       case 'posts':
