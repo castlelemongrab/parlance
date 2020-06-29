@@ -243,7 +243,13 @@ const Ratelimit = class extends Base {
 
   set headers (_headers) {
 
+    this._headers = (_headers || {});
     return this;
+  }
+
+  get headers () {
+
+    return this._headers;
   }
 
   async wait () {
@@ -272,6 +278,11 @@ const Session = class extends Base {
     this._out = (this.options.output || new Out.Default());
 
     return this;
+  }
+
+  get headers () {
+
+    return this._headers;
   }
 
   set headers (_headers) {
@@ -481,9 +492,8 @@ const Client = class extends Base {
 
   async _paged_request_one (_url, _profile, _start_key, _url_callback) {
 
-    let url = _url;
-    let profile = (_profile || {});
-    let username = profile.username;
+    let url = _url.slice(); /* Clone */
+    let username = _profile.username;
 
     let request = this._create_client(
       this._create_extra_headers(username)
@@ -491,11 +501,11 @@ const Client = class extends Base {
 
     let url_callback = (
       _url_callback || ((_p) => {
-        return `id=${encodeURIComponent(_p._id)}`;
+        return (_p._id ? `id=${encodeURIComponent(_p._id)}` : null);
       })
     );
 
-    let qs = (url_callback(profile) || '');
+    let qs = (url_callback(_profile || {}) || '');
 
     /* Some APIs don't use the limit parameter */
     if (!this._page_size_temporarily_disabled) {
@@ -515,6 +525,7 @@ const Client = class extends Base {
 
     /* Issue actual HTTPS request */
     let rv = await request(url);
+    this._session.headers = rv.headers;
     return rv;
   }
 
@@ -609,8 +620,8 @@ const Client = class extends Base {
     await this._ratelimit.wait();
 
     /* HTTPS request */
-    let response = await request(url);
-    return await response.json();
+    let rv = await request(url);
+    return await rv.json();
   }
 
   async print_feed () {
