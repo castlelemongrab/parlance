@@ -2,7 +2,8 @@
 License
 =======
 
-Copyright 2020, Baby Britain, Ltd.
+Copyright 2020 Parlaid Team
+Copyright 2020 Baby Britain, Ltd.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
