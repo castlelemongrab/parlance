@@ -910,7 +910,7 @@ const CLI = class extends Base {
     /* Intentional == */
     return (
       (_args.i != null && _args.u == null)
-        || (_args.u != null || _args.i == null)
+        || (_args.u != null && _args.i == null)
     );
   }
 };
