@@ -1,6 +1,6 @@
 {
   "name": "parlaid",
-  "version": "0.0.1",
+  "version": "1.4.1",
   "license": "MIT",
   "description": "A Parler client library",
   "repository": "https://github.com/castle-lemongrab/parlaid",
