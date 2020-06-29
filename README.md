@@ -23,24 +23,24 @@ If you don't know what this means or how to accomplish it, please do not use
 this software at this time. This early version is currently intended for
 research purposes and law enforcement.
 
-Once you've completed the above, use Node v14 or higher to run `src/main.js`.
+Once you've completed the above, use Node v14 or higher to run `bin/parlaid`.
 
 ```
 parlaid <command>
 
 Commands:
-  main.js profile    Fetch a user profile
-  main.js posts      Fetch all posts for a user
-  main.js echoes     Fetch all echoes for a user
-  main.js following  Fetch all users followed by a user
-  main.js followers  Fetch all followers of a user
-  main.js comments   Fetch all comments for a user or post
+  parlaid profile    Fetch a user profile
+  parlaid posts      Fetch all posts for a user
+  parlaid echoes     Fetch all echoes for a user
+  parlaid following  Fetch all users followed by a user
+  parlaid followers  Fetch all followers of a user
+  parlaid comments   Fetch all comments for a user or post
+  parlaid votes      Fetch all votes made by a user
 
 Options:
   --help               Show help                                       [boolean]
   --version            Show version number                             [boolean]
   -a, --authorization  Authorization file [string] [default: "config/auth.json"]
-
 ```
 
 Legal
