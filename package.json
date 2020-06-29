@@ -8,6 +8,10 @@
     "bent": "^7.3.6",
     "yargs": "^15.3.1"
   },
+  "bin": {
+    "@castle-lemongrab/parlaid": "bin/parlaid",
+    "parlaid": "bin/parlaid"
+  },
   "black": {
     "lives": "matter"
   }
