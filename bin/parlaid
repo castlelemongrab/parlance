@@ -1,15 +1,6 @@
 #!/usr/bin/env node
 
-/**
-  Application entry point
-**/
-async function main() {
-
-  let app = require('../src/main');
-  let cli = new app.CLI();
-  await cli.run();
-}
-
 // 🚀
+let main = require('../src/main');
 main();
 
