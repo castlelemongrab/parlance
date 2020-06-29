@@ -95,14 +95,6 @@ const Output = class {
 
     return this.log('network', `Fetching ${_url}`);
   }
-
-  /**
-    Log the successful completion of an operation.
-  **/
-  log_success (_message) {
-
-    return this.log('success', _message);
-  }
 };
 
 /**
@@ -221,35 +213,65 @@ const Ratelimit = class extends Base {
 
     this._rng_divisor = 64;
     this._headers = (_headers || {});
+    this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());
 
-    return this;
+    return this.reset();
+  }
+
+  reset () {
+
+    this._limit = this.limit_default;
+    this._remaining = this.remaining_default;
+    this._reset_time = this.reset_time_default;
+  }
+
+  get log_level () {
+
+    return this._log_level;
   }
 
   get limit () {
 
-    return 0;
+    return this._limit;
+  }
+
+  get limit_default () {
+
+    return 20;
   }
 
   get remaining () {
 
-    return 0;
+    return this._remaining;
   }
 
-  get reset () {
+  get remaining_default () {
 
-    return 0;
+    return 20;
   }
 
-  set headers (_headers) {
+  get reset_time () {
 
-    this._headers = (_headers || {});
-    return this;
+    return this._reset_time;
+  }
+
+  get reset_time_default () {
+
+    return (new Date()).valueOf();
   }
 
   get headers () {
 
     return this._headers;
+  }
+
+  set headers (_headers) {
+
+    this._headers = (_headers || {});
+    this._update_ratelimit_data();
+
+    return this;
   }
 
   async wait () {
@@ -259,6 +281,56 @@ const Ratelimit = class extends Base {
         (this._crypto.randomBytes(1)[0] / this._rng_divisor) * 1000
       ));
     });
+  }
+
+  _update_ratelimit_data () {
+
+    let limit = this.headers['x-ratelimit-limit'];
+    let reset_time = this.headers['x-ratelimit-reset'];
+    let remaining = this.headers['x-ratelimit-remaining'];
+
+    if (limit) {
+      let n = parseInt(limit, 10);
+      this._limit = (isNaN(n) ? this.limit_default : n);
+    }
+
+    if (remaining) {
+      let n = parseInt(remaining, 10);
+      this._remaining = (isNaN(n) ? this.remaining_default : n);
+    }
+
+    if (reset_time) {
+      let n = parseInt(reset_time, 10);
+      this._reset_time = (isNaN(n) ? this.reset_time_default : n * 1000);
+    }
+
+    if (this.log_level > 1) {
+      this._log_ratelimit_data();
+    }
+
+    return this;
+  }
+
+  _log_ratelimit_data () {
+
+    let ts, now;
+
+    try {
+      now = iso8601x.unparse(Date.now());
+      ts = iso8601x.unparse(this.reset_time);
+    } catch (_e) {
+      ts = 'unknown';
+      ts = 'currently invalid';
+    }
+
+    this._out.log(
+      'ratelimit', `Current time is ${now}`
+    );
+
+    this._out.log(
+      'ratelimit',
+        `${this.remaining}/${this.limit} remaining; reset time is ${ts}`
+    );
   }
 };
 
@@ -275,6 +347,7 @@ const Session = class extends Base {
 
     this.headers = _headers;
     this._credentials = _credentials;
+    this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());
 
     return this;
@@ -302,13 +375,12 @@ const Client = class extends Base {
 
     super(_options);
 
-    this._session = new Session();
-    this._ratelimit = new Ratelimit();
+    this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());
 
     this._page_size = (
       this.options.page_size ?
-        parseInt(_options.page_size, 10) : 20
+        parseInt(_options.page_size, 10) : 10
     );
 
     this._credentials = _credentials;
@@ -324,6 +396,14 @@ const Client = class extends Base {
       ].join(' ')
     );
 
+    this._session = new Session(this.credentials, null, {
+      log_level: this.log_level
+    });
+
+    this._ratelimit = new Ratelimit(null, {
+      log_level: this.log_level
+    });
+
     return this;
   }
 
@@ -331,6 +411,12 @@ const Client = class extends Base {
 
     return this._credentials;
   }
+
+  get log_level () {
+
+    return this._log_level;
+  }
+
 
   get user_agent () {
 
@@ -345,6 +431,11 @@ const Client = class extends Base {
   get page_size () {
 
     return this._page_size;
+  }
+
+  get log_level () {
+
+    return this._log_level;
   }
 
   set page_size (_page_size) {
@@ -486,7 +577,10 @@ const Client = class extends Base {
       throw new Error('Result dispatch: completion failed');
     }
 
-    this._out.log_success('Finished fetching paged results');
+    if (this.log_level > 0) {
+      this._out.log('success', 'Finished fetching paged results');
+    }
+
     return true;
   }
 
@@ -520,16 +614,22 @@ const Client = class extends Base {
       url = `${_url}?${qs}`;
     }
 
-    this._out.log_network(url);
-    await this._ratelimit.wait();
+    if (this.log_level > 0) {
+      this._out.log_network(url);
+    }
 
     /* Issue actual HTTPS request */
     let rv = await request(url);
     this._session.headers = rv.headers;
+    this._ratelimit.headers = rv.headers;
+
+    /* Minimize impact on service */
+    await this._ratelimit.wait();
+
     return rv;
   }
 
-  /** API request helpers **/
+  /** Paged API request callbacks **/
 
   async _request_feed (_profile, _start_ts) {
 
@@ -616,7 +716,10 @@ const Client = class extends Base {
     let username = encodeURIComponent(_username);
     let url = `v1/profile?username=${username}`;
 
-    this._out.log_network(url);
+    if (this.log_level > 0) {
+      this._out.log_network(url);
+    }
+
     await this._ratelimit.wait();
 
     /* HTTPS request */
@@ -736,6 +839,33 @@ const Arguments = class extends Base {
           describe: 'Authorization file'
         }
       )
+      .option(
+        'v', {
+          type: 'boolean',
+          alias: 'verbose',
+          default: undefined,
+          conflicts: [ 'q', 's' ],
+          describe: 'Print debug information to stderr'
+        }
+      )
+      .option(
+        'q', {
+          type: 'boolean',
+          alias: 'quiet',
+          default: undefined,
+          conflicts: [ 'v', 's' ],
+          describe: 'Print less information to stderr'
+        }
+      )
+      .option(
+        's', {
+          type: 'boolean',
+          alias: 'silent',
+          default: undefined,
+          conflicts: [ 'v', 'q' ],
+          describe: 'Print absolutely no information to stderr'
+        }
+      )
       .command(
         'feed', 'Fetch your own feed of posts'
       )
@@ -851,7 +981,10 @@ const CLI = class extends Base {
     }
 
     let credentials = new Credentials(config.mst, config.jst);
-    let client = new Client(credentials);
+
+    let client = new Client(credentials, {
+      log_level: this._compute_log_level(args)
+    });
 
     /* Command dispatch */
     switch (args._[0]) {
@@ -881,11 +1014,7 @@ const CLI = class extends Base {
         break;
 
       case 'comments':
-        if (!this._yargs_check_comment_options(args)) {
-          this._args.usage();
-          this._out.stderr("Missing required argument: u or i\n");
-          this._out.exit(1);
-        }
+        this._yargs_check_comment_options(args);
         if (args.i) {
           await(client.print_post_comments(args.i));
         } else {
@@ -916,13 +1045,38 @@ const CLI = class extends Base {
     }
   }
 
-  _yargs_check_comment_options(_args) {
+  _yargs_check_comment_options (_args) {
 
     /* Intentional == */
-    return (
+    let is_valid = (
       (_args.i != null && _args.u == null)
         || (_args.u != null && _args.i == null)
     );
+
+    if (!is_valid) {
+      this._args.usage();
+      this._out.stderr("Missing required argument: u or i\n");
+      this._out.exit(1);
+    }
+
+    return this;
+  }
+
+  _compute_log_level (_args) {
+
+    if (_args.s) {
+      return -1;
+    }
+
+    if (_args.q) {
+      return 0;
+    }
+
+    if (_args.v) {
+      return 2;
+    }
+
+    return 1;
   }
 };
 
