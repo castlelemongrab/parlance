@@ -211,7 +211,7 @@ const Ratelimit = class extends Base {
     /* To do: this probably isn't ideal */
     this._crypto = require('crypto');
 
-    this._rng_divisor = 64;
+    this._rng_divisor = 128;
     this._headers = (_headers || {});
     this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());
@@ -275,6 +275,38 @@ const Ratelimit = class extends Base {
   }
 
   async wait () {
+
+    if (this.remaining <= 0) {
+
+      let deadline = iso8601x.unparse(this.reset_time);
+
+      if (this.log_level > 1) {
+        this._out.log('ratelimit', `Limit hit; waiting until ${deadline}`);
+      }
+
+      await this._wait_until(this.reset_time);
+
+      if (this.log_level > 1) {
+        this._out.log('ratelimit', `Reset time reached; resuming operation`);
+      }
+    }
+
+    return await this._wait_rng();
+  }
+
+  async _wait_until (_ts) {
+
+    return new Promise((_resolve) => {
+      let i = setInterval(() => {
+        if (Date.now() > this.reset_time) {
+          clearInterval(i);
+          return _resolve();
+        }
+      }, 500);
+    });
+  }
+
+  async _wait_rng () {
 
     return new Promise((_resolve) => {
       setTimeout(_resolve, Math.floor(
