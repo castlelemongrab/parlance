@@ -29,13 +29,15 @@ Once you've completed the above, use Node v14 or higher to run `bin/parlaid`.
 parlaid <command>
 
 Commands:
-  parlaid profile    Fetch a user profile
-  parlaid posts      Fetch all posts for a user
-  parlaid echoes     Fetch all echoes for a user
-  parlaid following  Fetch all users followed by a user
-  parlaid followers  Fetch all followers of a user
-  parlaid comments   Fetch all comments for a user or post
-  parlaid votes      Fetch all votes made by a user
+  parlaid feed        Fetch your own feed of posts
+  parlaid feedechoes  Fetch your own feed of echoed posts
+  parlaid profile     Fetch a user profile
+  parlaid posts       Fetch all posts for a user
+  parlaid echoes      Fetch all echoes for a user
+  parlaid following   Fetch all users followed by a user
+  parlaid followers   Fetch all followers of a user
+  parlaid comments    Fetch all comments for a user or post
+  parlaid votes       Fetch all votes made by a user
 
 Options:
   --help               Show help                                       [boolean]
