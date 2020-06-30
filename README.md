@@ -42,7 +42,10 @@ Commands:
 Options:
   --help               Show help                                       [boolean]
   --version            Show version number                             [boolean]
-  -a, --authorization  Authorization file [string] [default: "config/auth.json"]
+  -a, --authorization  Credentials        [string] [default: "config/auth.json"]
+  -l, --ignore-last    Rely solely upon time comparisons               [boolean]
+  -n, --no-delay       Disable the failsafe rate-limiter               [boolean]
+  -p, --page-limit     Set the page size limit                          [number]
   -v, --verbose        Print debug information to stderr               [boolean]
   -q, --quiet          Print less information to stderr                [boolean]
   -s, --silent         Print absolutely no information to stderr       [boolean]
