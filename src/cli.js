@@ -77,6 +77,10 @@ const CLI = class extends Base {
         await client.print_feed_echoes();
         break;
 
+      case 'post':
+        await client.post(args.i, true);
+        break;
+
       case 'posts':
         profile = await client.profile(args.u);
         await client.print_posts(profile);
@@ -88,9 +92,9 @@ const CLI = class extends Base {
         break;
 
       case 'comments':
-        this._yargs_check_comment_options(args);
         if (args.i) {
-          await(client.print_post_comments(args.i));
+          await this._ensure_post_exists(client, args.i); /* Yikes */
+          await client.print_post_comments(args.i);
         } else {
           profile = await client.profile(args.u);
           await client.print_user_comments(profile);
@@ -112,14 +116,15 @@ const CLI = class extends Base {
         await client.print_votes(profile);
         break;
 
-      case 'post':
+      case 'write':
         profile = await client.profile();
-        await client.post(profile, args.c, true);
+        await client.write_post(profile, args.c, true);
         break;
 
       case 'delete':
-        profile = await client.profile();
-        await client.delete(profile, args.i, true);
+        profile = await client.profile(); /* Username */
+        await this._ensure_post_exists(client, args.i); /* Yikes */
+        await client.delete_post(profile, args.i, true);
         break;
 
       default:
@@ -129,21 +134,13 @@ const CLI = class extends Base {
     }
   }
 
-  _yargs_check_comment_options (_args) {
+  async _ensure_post_exists (_client, _id) {
 
-    /* Intentional == */
-    let is_valid = (
-      (_args.i != null && _args.u == null)
-        || (_args.u != null && _args.i == null)
-    );
-
-    if (!is_valid) {
-      this._args.usage();
-      this._out.stderr("Missing required argument: u or i\n");
-      this._out.exit(1);
+    try {
+      await _client.post(_id);
+    } catch (_e) {
+      this._out.fatal(_e.message);
     }
-
-    return this;
   }
 
   _compute_log_level (_args) {

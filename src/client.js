@@ -115,18 +115,20 @@ const Client = class extends Base {
     return bent(this.base_url, method, null, 200, headers);
   }
 
-  _create_extra_headers (_username) {
+  _create_extra_headers (_args) {
 
-    if (!_username) {
-      return {};
-    }
-
-    let username = encodeURIComponent(_username);
-
-    return {
+    let rv = {
       'Accept-Language': 'en-us',
-      Referrer: `https://parler.com/profile/${username}/posts`
+      'Referrer': 'https://parler.com/'
+    };
+
+    if (_args.username) {
+      rv.Referrer += `profile/${encodeURIComponent(_args.username)}/posts`;
+    } else if (_args.id) {
+      rv.Referrer += `post-view?q=${encodeURIComponent(_args.id)}`;
     }
+
+    return rv;
   }
 
   /** Result output functions **/
@@ -195,6 +197,7 @@ const Client = class extends Base {
 
     for (;;) {
 
+      /* Fail closed */
       let key_comparison = 0;
 
       /* Perform actual network request */
@@ -204,8 +207,14 @@ const Client = class extends Base {
       /* Extract result array */
       results = _reduce_callback(record);
 
+      /* Yikes and a half:
+          Occasionally, the API will return differently-formatted
+          non-string timestamps of zero. This is, of course, nuts. */
+
+      let is_next_key_valid = (next_key.toString() != 0);
+
       /* Enforce monotonicity */
-      if (!is_first_page) {
+      if (!is_first_page && is_next_key_valid) {
         try {
           key_comparison = ISO8601X.compare_extended(
             ISO8601X.parse_extended(prev_key),
@@ -216,13 +225,13 @@ const Client = class extends Base {
         }
       }
 
-      /* Exit conditions */
+      /* Primary exit condition */
       let is_final_page = (
-        !is_first_page && key_comparison > 0 &&
+        (!is_first_page && key_comparison > 0) ||
           (this._ignore_last ? false : record.last == true)
       );
 
-      /* Additional exit condition */
+      /* Supplemental exit condition */
       if (!results.length) {
         is_final_page = true;
       }
@@ -260,7 +269,7 @@ const Client = class extends Base {
     let url = _url.slice(); /* Clone */
 
     let request = this._create_client(
-      this._create_extra_headers(_profile.username)
+      this._create_extra_headers(_profile)
     );
 
     let url_callback = (
@@ -288,8 +297,10 @@ const Client = class extends Base {
       this._out.log_network(url);
     }
 
-    /* Issue actual HTTPS request */
+    /* HTTPS request */
     let rv = await request(url);
+
+    /* Propagate response headers */
     this._session.headers = rv.headers;
     this._ratelimit.headers = rv.headers;
 
@@ -381,20 +392,18 @@ const Client = class extends Base {
   async profile (_username, _print_results) {
 
     let request = this._create_client(
-      this._create_extra_headers(_username)
+      this._create_extra_headers({ username: _username })
     );
 
     let url = `v1/profile`;
 
     if (_username) {
-      url = `${url}?username=${encodeURIComponent(username)}`;
+      url = `${url}?username=${encodeURIComponent(_username)}`;
     }
 
     if (this.log_level > 0) {
       this._out.log_network(url);
     }
-
-    await this._ratelimit.wait();
 
     /* HTTPS request */
     const r = await request(url);
@@ -407,10 +416,38 @@ const Client = class extends Base {
       this._end_json_results();
     }
 
+    await this._ratelimit.wait();
     return rv;
   }
 
-  async post (_profile, _text, _print_results) {
+  async post (_id, _print_results) {
+
+    let request = this._create_client(
+      this._create_extra_headers({ id: _id })
+    );
+
+    let url = `v1/post?id=${encodeURIComponent(_id)}`;
+
+    if (this.log_level > 0) {
+      this._out.log_network(url);
+    }
+
+    /* HTTPS request */
+    const r = await request(url);
+    const rv = await r.json();
+
+    /* Optionally print results */
+    if (_print_results) {
+      this._start_json_results();
+      this._print_json_results([ rv ], true);
+      this._end_json_results();
+    }
+
+    await this._ratelimit.wait();
+    return rv;
+  }
+
+  async write_post (_profile, _text, _print_results) {
 
     let body = {
       body: _text,
@@ -418,10 +455,17 @@ const Client = class extends Base {
     }
 
     let request = this._create_client(
-      this._create_extra_headers(_profile.username), 'POST'
+      this._create_extra_headers(_profile), 'POST'
     );
 
-    const r = await request('v1/post', body);
+    let url = 'v1/post';
+
+    if (this.log_level > 0) {
+      this._out.log_network(url, body);
+    }
+
+    /* HTTPS request */
+    const r = await request(url, body);
     const rv = await r.json();
 
     /* Optionally print results */
@@ -434,15 +478,22 @@ const Client = class extends Base {
     return rv;
   }
 
-  async delete (_profile, _id, _print_results) {
+  async delete_post (_profile, _id, _print_results) {
 
     let body = { id: _id };
 
     let request = this._create_client(
-      this._create_extra_headers(_profile.username), 'POST'
+      this._create_extra_headers(_profile), 'POST'
     );
 
-    const r = await request('v1/post/delete', body);
+    let url = 'v1/post/delete';
+
+    if (this.log_level > 0) {
+      this._out.log_network(url, body);
+    }
+
+    /* HTTPS request */
+    const r = await request(url, body);
     const rv = await r.json();
 
     /* Optionally print results */
@@ -454,6 +505,7 @@ const Client = class extends Base {
 
     return rv;
   }
+
   async print_feed () {
 
     this.page_size = 10;

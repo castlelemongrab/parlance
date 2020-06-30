@@ -35,18 +35,19 @@ Commands:
   parlaid feed        Fetch your own feed of posts
   parlaid feedechoes  Fetch your own feed of echoed posts
   parlaid profile     Fetch a user profile
+  parlaid post        Fetch a single post by identifier
   parlaid posts       Fetch all posts for a user
   parlaid echoes      Fetch all echoes for a user
   parlaid following   Fetch all users followed by a user
   parlaid followers   Fetch all followers of a user
   parlaid comments    Fetch all comments for a user or post
   parlaid votes       Fetch all votes made by a user
-  parlaid post        Post a new message to your account
+  parlaid write       Post a new message to your account
   parlaid delete      Delete an existing message from your account
 
 Options:
-  --help               Show help                                       [boolean]
   --version            Show version number                             [boolean]
+  -h, --help           Show help                                       [boolean]
   -a, --authorization  Credentials        [string] [default: "config/auth.json"]
   -l, --ignore-last    Rely solely upon time comparisons               [boolean]
   -n, --no-delay       Disable the failsafe rate-limiter               [boolean]
@@ -54,24 +55,16 @@ Options:
   -v, --verbose        Print debug information to stderr               [boolean]
   -q, --quiet          Print less information to stderr                [boolean]
   -s, --silent         Print absolutely no information to stderr       [boolean]
-
-
+```
+```
 parlaid posts
 
 Fetch all posts for a user
 
 Options:
-  -u, --username       The name of the user                  [string] [required]
-
-
-parlaid post
-
-Post a new message to your account
-
-Options:
-  -c, --content        The content of the message            [string] [required]
-
-
+  -u, --username       The name of the user                             [string]
+```
+```
 parlaid comments
 
 Fetch all comments for a user or post
@@ -80,6 +73,17 @@ Options:
   -u, --username       The name of the user                             [string]
   -i, --identifier     The unique identifier of the post                [string]
 ```
+```
+parlaid write
+
+Post a new message to your account
+
+Options:
+  -c, --content        The content of the message            [string] [required]
+```
+
+If the `username` parameter is omitted for any subcommand where it is relevant,
+Parlaid will default to using your own account's username.
 
 Legal
 -----

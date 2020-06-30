@@ -34,11 +34,18 @@ const Arguments = class extends Base {
 
     this._yargs.demandCommand(1)
       .option(
+        'h', {
+          type: 'boolean',
+          alias: 'help',
+          describe: 'Show help'
+        }
+      )
+      .option(
         'a', {
           type: 'string',
           alias: 'authorization',
           default: 'config/auth.json',
-          describe: 'Credentials'
+          describe: 'Credentials file'
         }
       )
       .option(
@@ -111,7 +118,6 @@ const Arguments = class extends Base {
       .command(
         'feed', 'Fetch your own feed of posts'
       )
-
       .command(
         'feedechoes', 'Fetch your own feed of echoed posts'
       )
@@ -120,8 +126,17 @@ const Arguments = class extends Base {
           u: {
             type: 'string',
             alias: 'username',
-            demandOption: true,
             describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
+        'post', 'Fetch a single post by identifier', {
+          i: {
+            type: 'string',
+            alias: 'identifier',
+            demandOption: true,
+            describe: 'The unique identifier of the post'
           }
         }
       )
@@ -130,7 +145,6 @@ const Arguments = class extends Base {
           u: {
             type: 'string',
             alias: 'username',
-            demandOption: true,
             describe: 'The name of the user'
           }
         }
@@ -140,7 +154,6 @@ const Arguments = class extends Base {
           u: {
             type: 'string',
             alias: 'username',
-            demandOption: true,
             describe: 'The name of the user'
           }
         }
@@ -150,7 +163,6 @@ const Arguments = class extends Base {
           u: {
             type: 'string',
             alias: 'username',
-            demandOption: true,
             describe: 'The name of the user'
           }
         }
@@ -160,7 +172,6 @@ const Arguments = class extends Base {
           u: {
             type: 'string',
             alias: 'username',
-            demandOption: true,
             describe: 'The name of the user'
           }
         }
@@ -186,13 +197,12 @@ const Arguments = class extends Base {
           u: {
             type: 'string',
             alias: 'username',
-            demandOption: true,
             describe: 'The name of the user'
           }
         }
       )
       .command(
-        'post', 'Post a new message to your account', {
+        'write', 'Post a new message to your account', {
           c: {
             type: 'string',
             alias: 'content',
