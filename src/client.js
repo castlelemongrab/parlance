@@ -8,6 +8,7 @@ const Session = require('./session');
 const Credentials = require('./session');
 const Ratelimit = require('./ratelimit');
 const bent = require('bent'); /* Get bent */
+const ISO8601X = require('./iso8601x'); /* It's time */
 
 /**
   The core HTTPS client implementation.
@@ -29,6 +30,7 @@ const Client = class extends Base {
 
     this._credentials = _credentials;
     this._page_size_temporarily_disabled = false;
+    this._ignore_last = !!this.options.ignore_last;
     this._url = (this.options.url || 'https://api.parler.com/');
 
     this._ua = (
@@ -60,7 +62,6 @@ const Client = class extends Base {
 
     return this._log_level;
   }
-
 
   get user_agent () {
 
@@ -166,8 +167,8 @@ const Client = class extends Base {
 
     let record = {};
     let results = [];
-    let next_key = null;
     let is_first_page = true;
+    let prev_key = null, next_key = null;
 
     if (!_request_callback) {
       throw new Error('Request callback required');
@@ -181,21 +182,36 @@ const Client = class extends Base {
       throw new Error('Result dispatch: start failed');
     }
 
-    /* To do: allow a check on next_key, with history */
     for (;;) {
+
+      let key_comparison = 0;
 
       /* Perform actual network request */
       let record = await _request_callback(_profile, next_key);
+      next_key = record.next;
 
       /* Extract result array */
       results = _reduce_callback(record);
 
+      /* Enforce monotonicity */
+      if (!is_first_page) {
+        try {
+          key_comparison = ISO8601X.compare_extended(
+            ISO8601X.parse_extended(prev_key),
+              ISO8601X.parse_extended(next_key),
+          );
+        } catch (_e) {
+          throw new Error('Invalid or corrupt time-series key');
+        }
+      }
+
       /* Exit conditions */
-      let is_final_page = !(
-        record.last !== true ||
-          (is_first_page || results.length >= this.page_size)
+      let is_final_page = (
+        !is_first_page && key_comparison > 0 &&
+          (this._ignore_last ? false : record.last == true)
       );
 
+      /* Additional exit condition */
       if (!results.length) {
         is_final_page = true;
       }
@@ -205,8 +221,8 @@ const Client = class extends Base {
         throw new Error('Result dispatch failed');
       }
 
-      next_key = record.next;
       is_first_page = false;
+      prev_key = next_key;
 
       /* Termination */
       if (is_final_page) {

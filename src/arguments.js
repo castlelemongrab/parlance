@@ -42,6 +42,14 @@ const Arguments = class extends Base {
         }
       )
       .option(
+        'l', {
+          type: 'boolean',
+          alias: 'ignore-last',
+          default: undefined,
+          describe: 'Rely solely upon time comparisons'
+        }
+      )
+      .option(
         'v', {
           type: 'boolean',
           alias: 'verbose',

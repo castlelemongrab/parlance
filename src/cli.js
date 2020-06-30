@@ -38,6 +38,7 @@ const CLI = class extends Base {
     let credentials = new Credentials(config.mst, config.jst);
 
     let client = new Client(credentials, {
+      ignore_last: !!args.i,
       log_level: this._compute_log_level(args)
     });
 
