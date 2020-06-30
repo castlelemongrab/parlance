@@ -98,18 +98,21 @@ const Client = class extends Base {
 
   /** HTTPS functions **/
 
-  _create_client (_headers) {
+  _create_client (_headers, _method) {
+
+    let headers = (_headers || {});
+    let method = (_method || 'GET');
 
     let mst = encodeURIComponent(this._credentials.mst);
     let jst = encodeURIComponent(this._credentials.jst);
 
-    let headers = Object.assign(_headers, {
+    headers = Object.assign(_headers, {
       'User-Agent': this.user_agent,
       'Origin': 'https://parler.com',
       'Cookie': `jst=${jst}; mst=${mst}`
     });
 
-    return bent(this.base_url, 'GET', null, 200, headers);
+    return bent(this.base_url, method, null, 200, headers);
   }
 
   _create_extra_headers (_username) {
@@ -121,7 +124,8 @@ const Client = class extends Base {
     let username = encodeURIComponent(_username);
 
     return {
-      'Referrer': `https://parler.com/profile/${username}/posts`
+      'Accept-Language': 'en-us',
+      Referrer: `https://parler.com/profile/${username}/posts`
     }
   }
 
@@ -135,7 +139,7 @@ const Client = class extends Base {
 
   _end_json_results () {
 
-    this._out.stdout("\n]");
+    this._out.stdout("\n]\n");
     return true;
   }
 
@@ -254,10 +258,9 @@ const Client = class extends Base {
   async _paged_request_one (_url, _profile, _start_key, _url_callback) {
 
     let url = _url.slice(); /* Clone */
-    let username = _profile.username;
 
     let request = this._create_client(
-      this._create_extra_headers(username)
+      this._create_extra_headers(_profile.username)
     );
 
     let url_callback = (
@@ -293,6 +296,7 @@ const Client = class extends Base {
     /* Minimize impact on service */
     await this._ratelimit.wait();
 
+    /* Finished */
     return rv;
   }
 
@@ -300,7 +304,7 @@ const Client = class extends Base {
 
   async _request_feed (_profile, _start_ts) {
 
-    let response = await this._paged_request_one(
+    const response = await this._paged_request_one(
       'v1/feed', _profile, _start_ts, () => null
     );
 
@@ -309,7 +313,7 @@ const Client = class extends Base {
 
   async _request_creator (_profile, _start_ts) {
 
-    let response = await this._paged_request_one(
+    const response = await this._paged_request_one(
       'v1/post/creator', _profile, _start_ts
     );
 
@@ -318,7 +322,7 @@ const Client = class extends Base {
 
   async _request_following (_profile, _start_ts) {
 
-    let response = await this._paged_request_one(
+    const response = await this._paged_request_one(
       'v1/follow/following', _profile, _start_ts
     );
 
@@ -327,7 +331,7 @@ const Client = class extends Base {
 
   async _request_followers (_profile, _start_ts) {
 
-    let response = await this._paged_request_one(
+    const response = await this._paged_request_one(
       'v1/follow/followers', _profile, _start_ts
     );
 
@@ -336,7 +340,7 @@ const Client = class extends Base {
 
   async _request_user_comments (_profile, _start_ts) {
 
-    let response = await this._paged_request_one(
+    const response = await this._paged_request_one(
       'v1/comment/creator', _profile, _start_ts, (_profile) => {
         return `username=${encodeURIComponent(_profile.username)}`;
       }
@@ -347,7 +351,7 @@ const Client = class extends Base {
 
   async _request_post_comments (_profile, _start_ts) {
 
-    let response = await this._paged_request_one(
+    const response = await this._paged_request_one(
       'v1/comment', _profile, _start_ts, (_profile) => {
         return `id=${encodeURIComponent(_profile._id)}&reverse=true`;
       }
@@ -358,7 +362,7 @@ const Client = class extends Base {
 
   async _request_votes (_profile, _start_ts) {
 
-    let response = await this._paged_request_one(
+    const response = await this._paged_request_one(
       'v1/post/creator/liked', _profile, _start_ts
     );
 
@@ -374,14 +378,17 @@ const Client = class extends Base {
 
   /** API endpoints **/
 
-  async profile (_username) {
+  async profile (_username, _print_results) {
 
     let request = this._create_client(
       this._create_extra_headers(_username)
     );
 
-    let username = encodeURIComponent(_username);
-    let url = `v1/profile?username=${username}`;
+    let url = `v1/profile`;
+
+    if (_username) {
+      url = `${url}?username=${encodeURIComponent(username)}`;
+    }
 
     if (this.log_level > 0) {
       this._out.log_network(url);
@@ -390,10 +397,63 @@ const Client = class extends Base {
     await this._ratelimit.wait();
 
     /* HTTPS request */
-    let rv = await request(url);
-    return await rv.json();
+    const r = await request(url);
+    const rv = await r.json();
+
+    /* Optionally print results */
+    if (_print_results) {
+      this._start_json_results();
+      this._print_json_results([ rv ], true);
+      this._end_json_results();
+    }
+
+    return rv;
   }
 
+  async post (_profile, _text, _print_results) {
+
+    let body = {
+      body: _text,
+      parent: null, links: [], state: 4
+    }
+
+    let request = this._create_client(
+      this._create_extra_headers(_profile.username), 'POST'
+    );
+
+    const r = await request('v1/post', body);
+    const rv = await r.json();
+
+    /* Optionally print results */
+    if (_print_results) {
+      this._start_json_results();
+      this._print_json_results([ rv ], true);
+      this._end_json_results();
+    }
+
+    return rv;
+  }
+
+  async delete (_profile, _id, _print_results) {
+
+    let body = { id: _id };
+
+    let request = this._create_client(
+      this._create_extra_headers(_profile.username), 'POST'
+    );
+
+    const r = await request('v1/post/delete', body);
+    const rv = await r.json();
+
+    /* Optionally print results */
+    if (_print_results) {
+      this._start_json_results();
+      this._print_json_results([ rv ], true);
+      this._end_json_results();
+    }
+
+    return rv;
+  }
   async print_feed () {
 
     this.page_size = 10;

@@ -190,6 +190,26 @@ const Arguments = class extends Base {
             describe: 'The name of the user'
           }
         }
+      )
+      .command(
+        'post', 'Post a new message to your account', {
+          c: {
+            type: 'string',
+            alias: 'content',
+            demandOption: true,
+            describe: 'The content of the message'
+          }
+        }
+      )
+      .command(
+        'delete', 'Delete an existing message from your account', {
+          i: {
+            type: 'string',
+            alias: 'identifier',
+            demandOption: true,
+            describe: 'The unique identifier of the post'
+          }
+        }
       );
 
     return this;

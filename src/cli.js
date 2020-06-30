@@ -66,9 +66,7 @@ const CLI = class extends Base {
     switch (args._[0]) {
 
       case 'profile':
-        profile = await client.profile(args.u);
-        this._out.stdout(JSON.stringify(profile));
-        this._out.stdout("\n");
+        await client.profile(args.u, true);
         break;
 
       case 'feed':
@@ -112,6 +110,16 @@ const CLI = class extends Base {
       case 'votes':
         profile = await client.profile(args.u);
         await client.print_votes(profile);
+        break;
+
+      case 'post':
+        profile = await client.profile();
+        await client.post(profile, args.c, true);
+        break;
+
+      case 'delete':
+        profile = await client.profile();
+        await client.delete(profile, args.i, true);
         break;
 
       default:
