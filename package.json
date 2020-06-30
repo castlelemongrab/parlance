@@ -3,7 +3,7 @@
   "version": "1.4.1",
   "license": "MIT",
   "description": "A Parler client library",
-  "repository": "https://github.com/castle-lemongrab/parlaid",
+  "repository": "https://github.com/castlelemongrab/parlaid",
   "dependencies": {
     "bent": "^7.3.6",
     "yargs": "^15.3.1"

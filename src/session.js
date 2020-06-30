@@ -4,6 +4,7 @@
 
 const Base = require('./base');
 const Out = require('./output');
+const Cookie = require('./cookie');
 const Credentials = require('./credentials');
 
 /**
