@@ -6,8 +6,8 @@ Parlaid is a client library for Parler – a "free speech" social network that
 accepts real money to buy "influence" points to boost organic non-advertising
 content. The authors will refrain from commenting on this business model.
 
-Usage
------
+Installation and Configuration
+------------------------------
 
 First, run `npm install` to fetch all required dependencies.
 
@@ -25,6 +25,9 @@ research purposes and law enforcement.
 
 Once you've completed the above, use Node v14 or higher to run `bin/parlaid`.
 
+Usage
+-----
+
 ```
 parlaid <command>
 
@@ -38,6 +41,8 @@ Commands:
   parlaid followers   Fetch all followers of a user
   parlaid comments    Fetch all comments for a user or post
   parlaid votes       Fetch all votes made by a user
+  parlaid post        Post a new message to your account
+  parlaid delete      Delete an existing message from your account
 
 Options:
   --help               Show help                                       [boolean]
@@ -49,6 +54,31 @@ Options:
   -v, --verbose        Print debug information to stderr               [boolean]
   -q, --quiet          Print less information to stderr                [boolean]
   -s, --silent         Print absolutely no information to stderr       [boolean]
+
+
+parlaid posts
+
+Fetch all posts for a user
+
+Options:
+  -u, --username       The name of the user                  [string] [required]
+
+
+parlaid post
+
+Post a new message to your account
+
+Options:
+  -c, --content        The content of the message            [string] [required]
+
+
+parlaid comments
+
+Fetch all comments for a user or post
+
+Options:
+  -u, --username       The name of the user                             [string]
+  -i, --identifier     The unique identifier of the post                [string]
 ```
 
 Legal
