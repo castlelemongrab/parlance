@@ -89,7 +89,7 @@ const Ratelimit = class extends Base {
 
       let deadline = ISO8601X.unparse(this.reset_time);
 
-      if (this.log_level > 1) {
+      if (this.log_level > 0) {
         this._out.log('ratelimit', `Limit hit; waiting until ${deadline}`);
       }
 
