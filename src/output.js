@@ -51,8 +51,18 @@ const Output = class {
   **/
   fatal (_message, _status) {
 
-    this.stderr(`[fatal] ${_message}\n`, true);
+    this.log('fatal', `${_message}`, true);
     throw new Error(`Process exited with status ${_status || 127}\n`);
+  }
+
+  /**
+    Warn the user of an exigent circumstance
+    @arg _message {string} - The message to emit.
+  **/
+  warn (_message) {
+
+    this.log('warn', `${_message}`, true);
+    return this;
   }
 
   /**

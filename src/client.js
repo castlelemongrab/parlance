@@ -23,7 +23,7 @@ const Client = class extends Base {
     this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());
 
-    this._page_size = (
+    this._page_size_override = (
       this.options.page_size ?
         parseInt(_options.page_size, 10) : 10
     );
@@ -47,7 +47,8 @@ const Client = class extends Base {
     });
 
     this._ratelimit = new Ratelimit(null, {
-      log_level: this.log_level
+      log_level: this.log_level,
+      disable_rng_delay: !!this.options.disable_rng_delay
     });
 
     return this;
@@ -75,7 +76,7 @@ const Client = class extends Base {
 
   get page_size () {
 
-    return this._page_size;
+    return (this._page_size_override || this._page_size);
   }
 
   get log_level () {
@@ -85,8 +86,14 @@ const Client = class extends Base {
 
   set page_size (_page_size) {
 
+    if (this._page_size_override) {
+      return this;
+    }
+
     let page_size = parseInt(_page_size, 10);
     this._page_size = (page_size > 0 ? page_size : this._page_size);
+
+    return this;
   }
 
   /** HTTPS functions **/

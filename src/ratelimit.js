@@ -19,10 +19,11 @@ const Ratelimit = class extends Base {
     /* To do: this probably isn't ideal */
     this._crypto = require('crypto');
 
-    this._rng_divisor = 128;
+    this._rng_divisor = 64;
     this._headers = (_headers || {});
     this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());
+    this._disable_rng_delay = !!this.options.disable_rng_delay;
 
     return this.reset();
   }
@@ -99,7 +100,11 @@ const Ratelimit = class extends Base {
       }
     }
 
-    return await this._wait_rng();
+    if (!this._disable_rng_delay) {
+      await this._wait_rng();
+    }
+
+    return this;
   }
 
   async _wait_until (_ts) {

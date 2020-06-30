@@ -28,6 +28,24 @@ const CLI = class extends Base {
     let config, profile;
     let args = this._args.parse();
 
+    if (args.n) {
+      this._out.warn('Use --confirm-no-delay if you wish to disable delays');
+    }
+
+    if (args.p != null) {
+      this._out.warn('Use --confirm-page-size to truly change the page size');
+    }
+
+    if (args.n || args.p != null) {
+      this._out.warn('You are responsible for deciding if this is allowed');
+      this._out.warn('The authors bear no responsibility for your actions');
+      this._out.fatal('You have been warned; refusing to continue as-is');
+    }
+
+    if (args.g <= 0) {
+      this._out.fatal('Page size must be greater than zero');
+    }
+
     try {
       let json_config = await fs.readFile(args.a);
       config = JSON.parse(json_config);
@@ -38,7 +56,9 @@ const CLI = class extends Base {
     let credentials = new Credentials(config.mst, config.jst);
 
     let client = new Client(credentials, {
+      page_size: args.g,
       ignore_last: !!args.i,
+      disable_rng_delay: !!args.x,
       log_level: this._compute_log_level(args)
     });
 

@@ -38,7 +38,7 @@ const Arguments = class extends Base {
           type: 'string',
           alias: 'authorization',
           default: 'config/auth.json',
-          describe: 'Authorization file'
+          describe: 'Credentials'
         }
       )
       .option(
@@ -47,6 +47,38 @@ const Arguments = class extends Base {
           alias: 'ignore-last',
           default: undefined,
           describe: 'Rely solely upon time comparisons'
+        }
+      )
+      .option(
+        'n', {
+          type: 'boolean',
+          alias: 'no-delay',
+          default: undefined,
+          describe: 'Disable the failsafe rate-limiter'
+        }
+      )
+      .option(
+        'x', {
+          hidden: true,
+          type: 'boolean',
+          default: undefined,
+          alias: 'confirm-no-delay',
+          describe: 'Actually disable the failsafe rate-limiter'
+        }
+      )
+      .option(
+        'p', {
+          type: 'number',
+          alias: 'page-limit',
+          describe: 'Set the page size limit'
+        }
+      )
+      .option(
+        'g', {
+          hidden: true,
+          type: 'number',
+          alias: 'confirm-page-size',
+          describe: 'Actually set the page size limit'
         }
       )
       .option(
