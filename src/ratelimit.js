@@ -94,7 +94,7 @@ const Ratelimit = class extends Base {
 
       await this._wait_until(this.reset_time);
 
-      if (this.log_level > 1) {
+      if (this.log_level > 0) {
         this._out.log('ratelimit', `Reset time reached; resuming operation`);
       }
     }
