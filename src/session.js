@@ -69,7 +69,7 @@ const Session = class extends Base {
             'credentials', 'Credentials file was updated', this.log_level, 0
           );
         } catch (_e) {
-          this._out.warn('Failed to update credentials file');
+          this._out.fatal('Failed to update credentials file');
         }
       } else {
         this._out.warn('Please use the -o option to save credentisals');

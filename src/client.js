@@ -228,7 +228,7 @@ const Client = class extends Base {
 
       /* Primary exit condition */
       let is_final_page = (
-        (!is_first_page && key_comparison > 0) ||
+        (!is_first_page && key_comparison >= 0) ||
           (this._ignore_last ? false : record.last == true)
       );
 
