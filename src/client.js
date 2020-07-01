@@ -43,7 +43,8 @@ const Client = class extends Base {
     );
 
     this._session = new Session(this.credentials, null, {
-      log_level: this.log_level
+      log_level: this.log_level,
+      credentials_output: this.options.credentials_output
     });
 
     this._ratelimit = new Ratelimit(null, {
@@ -257,9 +258,9 @@ const Client = class extends Base {
       throw new Error('Result dispatch: completion failed');
     }
 
-    if (this.log_level > 0) {
-      this._out.log('success', 'Finished fetching paged results');
-    }
+    this._out.log_level(
+      'success', 'Finished fetching paged results', this.log_level, 0
+    );
 
     return true;
   }
@@ -301,8 +302,8 @@ const Client = class extends Base {
     let rv = await request(url);
 
     /* Propagate response headers */
-    this._session.headers = rv.headers;
     this._ratelimit.headers = rv.headers;
+    await this._session.set_headers(rv.headers);
 
     /* Minimize impact on service */
     await this._ratelimit.wait();

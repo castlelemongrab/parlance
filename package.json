@@ -6,6 +6,7 @@
   "repository": "https://github.com/castlelemongrab/parlaid",
   "dependencies": {
     "bent": "^7.3.6",
+    "jsDump": "^1.1.0",
     "yargs": "^15.3.1"
   },
   "bin": {

@@ -83,6 +83,22 @@ const Output = class {
 
     return this.log('network', `Fetching ${_url}`);
   }
+
+  /**
+    Log a message to standard error while obeying a numeric log level.
+    @arg {_type} {string} - The type of message being logged.
+    @arg {_message} {string} - The message to log to standard error.
+    @arg {_limit} {number} - The current log level limit.
+    @arg {_level} {number} - The log level of this message.
+  **/
+  log_level (_type, _message, _limit, _level) {
+
+    if (_level > _limit) {
+      return this;
+    }
+
+    return this.log(_type, _message);
+  }
 };
 
 /**

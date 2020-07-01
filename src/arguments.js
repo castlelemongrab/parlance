@@ -41,11 +41,18 @@ const Arguments = class extends Base {
         }
       )
       .option(
-        'a', {
+        'c', {
           type: 'string',
-          alias: 'authorization',
+          alias: 'credentials',
           default: 'config/auth.json',
           describe: 'Credentials file'
+        }
+      )
+      .option(
+        'o', {
+          type: 'string',
+          alias: 'credentials-out',
+          describe: 'Credentials output file'
         }
       )
       .option(

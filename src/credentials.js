@@ -14,8 +14,8 @@ const Credentials = class extends Base {
 
     super(_options);
 
-    this.mst = _mst;
-    this.jst = _jst;
+    this.mst = (_mst || '');
+    this.jst = (_jst || '');
 
     return this;
   }
@@ -39,6 +39,13 @@ const Credentials = class extends Base {
   set jst (_jst) {
 
     this._jst = _jst.toString().replace(/^jst=/, '');
+  }
+
+  toObject () {
+
+    return {
+      mst: this.mst, jst: this.jst
+    };
   }
 };
 

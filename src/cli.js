@@ -47,7 +47,7 @@ const CLI = class extends Base {
     }
 
     try {
-      let json_config = await fs.readFile(args.a);
+      let json_config = await fs.readFile(args.c);
       config = JSON.parse(json_config);
     } catch (_e) {
       this._out.fatal(`Unable to read authorization data from ${args.a}`, 2);
@@ -58,6 +58,7 @@ const CLI = class extends Base {
     let client = new Client(credentials, {
       page_size: args.g,
       ignore_last: !!args.i,
+      credentials_output: args.o,
       disable_rng_delay: !!args.x,
       log_level: this._compute_log_level(args)
     });
