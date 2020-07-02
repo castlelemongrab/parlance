@@ -11,7 +11,8 @@ content. The authors will refrain from commenting on this business model.
 Installation and Configuration
 ------------------------------
 
-First, run `npm install parlance` to fetch all required dependencies.
+First, run `npm install @castlelemongrab/parlance` to fetch the software and
+all required dependencies.
 
 Then, log in to Parler using an ordinary web browser. Use that browser's
 development tools and/or cookie storage interface to capture the `MST` (Master

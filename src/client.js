@@ -55,6 +55,11 @@ const Client = class extends Base {
     return this;
   }
 
+  get session() {
+
+    return this._session;
+  }
+
   get credentials () {
 
     return this._credentials;

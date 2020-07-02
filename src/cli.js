@@ -63,6 +63,16 @@ const CLI = class extends Base {
       log_level: this._compute_log_level(args)
     });
 
+    /* Be human-friendly */
+    let mst = decodeURIComponent(config.mst);
+    let jst = decodeURIComponent(config.jst);
+
+    if (config.mst !== mst || config.jst !== jst) {
+      this._out.warn('Detected invalid URI-encoded credentials; correcting');
+      client.credentials.mst = mst; client.credentials.jst = jst;
+      client.session.write_credentials();
+    }
+
     /* Command dispatch */
     switch (args._[0]) {
 

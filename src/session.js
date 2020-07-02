@@ -59,26 +59,27 @@ const Session = class extends Base {
           this._credentials[_k] = decodeURIComponent(parsed[i][_k]);
         }
       });
+    }
 
-      if (this._output_file) {
-        try {
-          await fs.writeFile(
-            this._output_file, jsdump.parse(this._credentials.toObject())
-          );
-          this._out.log_level(
-            'credentials', 'Credentials file was updated', this.log_level, 0
-          );
-        } catch (_e) {
-          this._out.fatal('Failed to update credentials file');
-        }
-      } else {
-        this._out.warn('Please use the -o option to save credentisals');
-        this._out.warn('Newly-issued server credentials may have been lost');
+    return await this.write_credentials(true);
+  }
+
+  async write_credentials(_is_initial_update) {
+
+    if (this._output_file) {
+      try {
+        await fs.writeFile(
+          this._output_file, jsdump.parse(this._credentials.toObject())
+        );
+        this._out.log_level(
+          'credentials', 'Credentials file was updated', this.log_level, 0
+        );
+      } catch (_e) {
+        this._out.fatal('Failed to update credentials file');
       }
-
-      this._out.log_level(
-        'credentials', 'Server issued updated credentials', this.log_level, 0
-      );
+    } else if (!_is_initial_update) {
+      this._out.warn('Please use the -o option to save credentials');
+      this._out.warn('Newly-issued server credentials may have been lost');
     }
 
     return this;
