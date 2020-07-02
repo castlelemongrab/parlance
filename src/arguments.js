@@ -126,9 +126,6 @@ const Arguments = class extends Base {
         'feed', 'Fetch your own feed of posts'
       )
       .command(
-        'feedechoes', 'Fetch your own feed of echoed posts'
-      )
-      .command(
         'profile', 'Fetch a user profile', {
           u: {
             type: 'string',
@@ -153,15 +150,11 @@ const Arguments = class extends Base {
             type: 'string',
             alias: 'username',
             describe: 'The name of the user'
-          }
-        }
-      )
-      .command(
-        'echoes', 'Fetch all echoes for a user', {
-          u: {
-            type: 'string',
-            alias: 'username',
-            describe: 'The name of the user'
+          },
+          e: {
+            type: 'boolean',
+            alias: 'echoes',
+            describe: 'Include echoed posts'
           }
         }
       )
@@ -184,18 +177,24 @@ const Arguments = class extends Base {
         }
       )
       .command(
-        'comments', 'Fetch all comments for a user or post', {
+        'comments', 'Fetch all comments for a user, post, or comment', {
           u: {
             type: 'string',
-            conflicts: 'i',
             alias: 'username',
+            conflicts: [ 'i', 'r' ],
             describe: 'The name of the user'
           },
-          i: {
+          p: {
             type: 'string',
-            conflicts: 'u',
             alias: 'identifier',
+            conflicts: [ 'u', 'r' ],
             describe: 'The unique identifier of the post'
+          },
+          r: {
+            type: 'string',
+            alias: 'replies',
+            conflicts: [ 'u', 'i' ],
+            describe: 'The unique identifier of the comment'
           }
         }
       )

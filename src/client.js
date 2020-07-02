@@ -154,9 +154,14 @@ const Client = class extends Base {
 
     for (let i = 0, len = _results.length; i < len; ++i) {
 
+      if (typeof _results[i] !== 'object') {
+        this._out.warn('Skipping invalid non-object result');
+      }
+
       if (!(_is_first_page && i <= 0)) {
         this._out.stdout(",");
       }
+
       this._out.stdout(
         JSON.stringify(_results[i]).trim()
       );
@@ -217,10 +222,16 @@ const Client = class extends Base {
       /* Enforce monotonicity */
       if (!is_first_page && is_next_key_valid) {
         try {
+          let next_key_parsed = ISO8601X.parse_extended(next_key);
+
           key_comparison = ISO8601X.compare_extended(
-            ISO8601X.parse_extended(prev_key),
-              ISO8601X.parse_extended(next_key),
+            ISO8601X.parse_extended(prev_key), next_key_parsed
           );
+
+          if (this.log_level > 1) {
+            let tskp = ISO8601X.unparse_extended(next_key_parsed, true);
+            this._out.log('paging', `Next time-series key will be ${tskp}`);
+          }
         } catch (_e) {
           throw new Error('Invalid or corrupt time-series key');
         }
@@ -312,6 +323,51 @@ const Client = class extends Base {
     return rv;
   }
 
+  /** Post threading functions **/
+
+  _reparent_posts (_o) {
+
+    let refhash = {};
+    let o = (_o || {});
+    let posts = o.posts;
+    let postrefs = o.postRefs;
+
+    if (!Array.isArray(posts) || !Array.isArray(postrefs)) {
+      throw new Error('Expected posts and postRefs to be arrays');
+    }
+
+    /* Smoke it up */
+    for (let i = 0, len = postrefs.length; i < len; ++i) {
+      if (typeof postrefs[i] !== 'object') {
+        throw new Error(`Expected postRef at index ${i} to be an object`);
+      }
+      refhash[postrefs[i]._id] = postrefs[i];
+    }
+
+    /* And improvise */
+    for (let i = 0, len = posts.length; i < len; ++i) {
+      if (typeof posts[i] !== 'object') {
+        throw new Error(`Expected post at index ${i} to be an object`);
+      }
+
+      /* A brief comment:
+          If you're a backend engineer and do this to your frontend
+          team, you are committing a crime and should be disciplined. */
+
+      [ 'parent', 'root' ].forEach((_k) => {
+        if (posts[i][_k]) {
+          if (refhash[posts[i][_k]]) {
+            posts[i][_k] = refhash[posts[i][_k]];
+          } else {
+            this._out.warn(`Post at index ${i} refers to an invalid ${_k}`);
+          }
+        }
+      });
+    }
+
+    return _o;
+  }
+
   /** Paged API request callbacks **/
 
   async _request_feed (_profile, _start_ts) {
@@ -320,7 +376,8 @@ const Client = class extends Base {
       'v1/feed', _profile, _start_ts, () => null
     );
 
-    return await response.json();
+    let rv = await response.json();
+    return this._reparent_posts(rv);
   }
 
   async _request_creator (_profile, _start_ts) {
@@ -329,7 +386,8 @@ const Client = class extends Base {
       'v1/post/creator', _profile, _start_ts
     );
 
-    return await response.json();
+    let rv = await response.json();
+    return this._reparent_posts(rv);
   }
 
   async _request_following (_profile, _start_ts) {
@@ -380,6 +438,8 @@ const Client = class extends Base {
 
     return await response.json();
   }
+
+  /** Paged API print functions **/
 
   async _print_generic (_profile, _fn_name, _key) {
 
@@ -507,41 +567,28 @@ const Client = class extends Base {
     return rv;
   }
 
-  async print_feed () {
+  async print_feed (_profile) {
 
     this.page_size = 10;
-    return this._print_generic(
-      null, '_request_feed', 'posts'
-    );
-  }
 
-  async print_feed_echoes () {
-
-    this.page_size = 10;
     return this._print_generic(
-      null, '_request_feed', 'postRefs'
+      _profile, '_request_feed', 'posts'
     );
   }
 
   async print_posts (_profile) {
 
     this.page_size = 20;
+
     return this._print_generic(
       _profile, '_request_creator', 'posts'
-    );
-  }
-
-  async print_echoes (_profile) {
-
-    this.page_size = 20;
-    return this._print_generic(
-      _profile, '_request_creator', 'postRefs'
     );
   }
 
   async print_following (_profile) {
 
     this.page_size = 10;
+
     return this._print_generic(
       _profile, '_request_following', 'followees'
     );
@@ -550,6 +597,7 @@ const Client = class extends Base {
   async print_followers (_profile) {
 
     this.page_size = 10;
+
     return this._print_generic(
       _profile, '_request_followers', 'followers'
     );
@@ -573,9 +621,20 @@ const Client = class extends Base {
     );
   }
 
+  async print_comment_replies (_profile, _id) {
+
+    this.page_size = 10;
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._print_generic(
+      { _id: _id, username: _profile.username }, /* Fix this */
+        '_request_post_comments', 'comments'
+    );
+  }
   async print_votes (_profile) {
 
     this.page_size = 10;
+
     return this._print_generic(
       _profile, '_request_votes', 'posts'
     );

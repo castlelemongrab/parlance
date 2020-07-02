@@ -1,6 +1,0 @@
-#!/usr/bin/env node
-
-// 🚀
-let main = require('../src/main');
-main();
-

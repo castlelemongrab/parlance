@@ -71,11 +71,8 @@ const CLI = class extends Base {
         break;
 
       case 'feed':
-        await client.print_feed();
-        break;
-
-      case 'feedechoes':
-        await client.print_feed_echoes();
+        profile = await client.profile();
+        await client.print_feed(profile);
         break;
 
       case 'post':
@@ -93,9 +90,12 @@ const CLI = class extends Base {
         break;
 
       case 'comments':
-        if (args.i) {
-          await this._ensure_post_exists(client, args.i); /* Yikes */
-          await client.print_post_comments(args.i);
+        if (args.p) {
+          await this._ensure_post_exists(client, args.p); /* Yikes */
+          await client.print_post_comments(args.p);
+        } else if (args.r) {
+          profile = await client.profile();
+          await client.print_comment_replies(profile, args.r);
         } else {
           profile = await client.profile(args.u);
           await client.print_user_comments(profile);
@@ -123,7 +123,7 @@ const CLI = class extends Base {
         break;
 
       case 'delete':
-        profile = await client.profile(); /* Username */
+        profile = await client.profile(); /* For referrer */
         await this._ensure_post_exists(client, args.i); /* Yikes */
         await client.delete_post(profile, args.i, true);
         break;
