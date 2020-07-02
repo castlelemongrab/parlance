@@ -1,15 +1,17 @@
 
-Parlaid
-=======
+Parlance
+========
 
-Parlaid is a client library for Parler – a "free speech" social network that
+Parlance is a client library for Parler – a "free speech" social network that
 accepts real money to buy "influence" points to boost organic non-advertising
 content. The authors will refrain from commenting on this business model.
+
+
 
 Installation and Configuration
 ------------------------------
 
-First, run `npm install` to fetch all required dependencies.
+First, run `npm install parlance` to fetch all required dependencies.
 
 Then, log in to Parler using an ordinary web browser. Use that browser's
 development tools and/or cookie storage interface to capture the `MST` (Master
@@ -23,27 +25,27 @@ If you don't know what this means or how to accomplish it, please do not use
 this software at this time. This early version is currently intended for
 research purposes and law enforcement.
 
-Once you've completed the above, use Node v14 or higher to run `bin/parlaid`.
+Once you've completed the above, use Node v14 or higher to run `bin/parlance`.
 
 Usage
 -----
 
 ```
-parlaid <command>
+parlance <command>
 
 Commands:
-  parlaid feed        Fetch your own feed of posts
-  parlaid feedechoes  Fetch your own feed of echoed posts
-  parlaid profile     Fetch a user profile
-  parlaid post        Fetch a single post by identifier
-  parlaid posts       Fetch all posts for a user
-  parlaid echoes      Fetch all echoes for a user
-  parlaid following   Fetch all users followed by a user
-  parlaid followers   Fetch all followers of a user
-  parlaid comments    Fetch all comments for a user or post
-  parlaid votes       Fetch all votes made by a user
-  parlaid write       Post a new message to your account
-  parlaid delete      Delete an existing message from your account
+  parlance feed        Fetch your own feed of posts
+  parlance feedechoes  Fetch your own feed of echoed posts
+  parlance profile     Fetch a user profile
+  parlance post        Fetch a single post by identifier
+  parlance posts       Fetch all posts for a user
+  parlance echoes      Fetch all echoes for a user
+  parlance following   Fetch all users followed by a user
+  parlance followers   Fetch all followers of a user
+  parlance comments    Fetch all comments for a user or post
+  parlance votes       Fetch all votes made by a user
+  parlance write       Post a new message to your account
+  parlance delete      Delete an existing message from your account
 
 Options:
   --version              Show version number                           [boolean]
@@ -58,33 +60,42 @@ Options:
   -s, --silent           Print absolutely no information to stderr     [boolean]
 ```
 ```
-parlaid posts
+parlance posts
 
 Fetch all posts for a user
 
 Options:
-  -u, --username       The name of the user                             [string]
+  -u, --username         The name of the user                           [string]
 ```
 ```
-parlaid comments
+parlance comments
 
 Fetch all comments for a user or post
 
 Options:
-  -u, --username       The name of the user                             [string]
-  -i, --identifier     The unique identifier of the post                [string]
+  -u, --username         The name of the user                           [string]
+  -i, --identifier       The unique identifier of the post              [string]
 ```
 ```
-parlaid write
+parlance write
 
 Post a new message to your account
 
 Options:
-  -c, --content        The content of the message            [string] [required]
+  -t, --text             The textual content to post         [string] [required]
+```
+```
+parlance delete
+
+Delete an existing message from your account
+
+Options:
+  -i, --identifier       The unique identifier of the post   [string] [required]
+
 ```
 
 If the `username` parameter is omitted for any subcommand where it is relevant,
-Parlaid will default to using your own account's username.
+Parlance will default to using your own account's username.
 
 Legal
 -----
@@ -117,26 +128,28 @@ Credits
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA512
 
-Parlaid
-Copyright 2020 Parlaid Team
-Copyright 2020 Baby Britain, Ltd.
+Parlance
+An MIT-licensed client library and open-source intelligence tool for Parler
 
-GPG contact: EEE05391661B310E10F5044C509D06B28C724903
+Copyright 2020, The Parlance Team
+Copyright 2020, Baby Britain, Ltd.
+
+GPG contact: 04BDC713FF16FE315E58CC5028B4EB3E98787367
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE7uBTkWYbMQ4Q9QRMUJ0GsoxySQMFAl76V0IACgkQUJ0Gsoxy
-SQMPuQ/9HTGaJnxUUAVaFKNu55JX6bCdr8/2ugkYwHRWG+zWY96q1LEF4r1rRlIz
-OB9FcMZIFe0xi17PL3emwvfVxILI82ku1q6Zo8Qma6VrS7LoRrqvVY6YFwK0JNOS
-f2a72BuNIDN4S0G/kZG2mEprBxfb/tWIa4pG084nSg35ACwe740D53EoPwzgfBBb
-9b/Caav83WE/P4RGf2lYbhYUvPHt7w7xLQyFOX9efJjw9SyDsFdzlnpGcEA6HOJ9
-aIKRqejS2iXhTiKmpmWIR1Z8rBrfNv8f7zcT/oVQtOKWWsrUcURTvgB+rCnvAXyx
-ZGMav+QerDlHWTRnntpbfTdJcPeU6OsVu3IZ7qNo1aCipRg9ZF6fKt08c8kUMTlA
-PvQR9uMlx4mQgjTGANR8Xa4lnxHJ+3GHSVKpMCYFVLOD+7Tca9Vkc8Jzng20VfoH
-qhjnE5pwOvAbc7HeuBEVU2bnJyQvaR+033zyKD6J7A0x3y/xqfhaP/v1p+9462lL
-HEvoKYSQS8xUs+ZcfxW4JEQJf5SX7Is4y6szG3hjibSwtbxJx2dh3iRXz8qL263b
-8cCt3FnqP+Z/sqQxYAHX1IBxBsa4xFy+xpxX4Q3VjEQ/9knNqKmDaJAN/IBdOeON
-UOctS9ierhkWxuAx9h2kNueqOVJmqVWj+WW5hYPUfoUPLuO2XeQ=
-=Ow2p
+iQIzBAEBCgAdFiEEBL3HE/8W/jFeWMxQKLTrPph4c2cFAl796YgACgkQKLTrPph4
+c2eW5A/+Pbw17ilhoNWgAZYzMAvgJngS/VO0QtHlmAdKDRtyt14x3VeHw59XE5PW
+iOAzM0yUG28vwflBp9ZCml+6eFw1jsLXuXOS/+X/zfuWZtHCVKal/FTYiKY/foHY
+VUsjdwCUlbOZKdrUHAgloRRoc6aQlIIzJzmn+FHT0OOos3n28fNjqToGsVXWeg5y
+CqJuSAIP+BLbao38vH5X/xg0rBJMUVYWaoX2TswGK7dJoY94Np6nJbiRIrU3iit4
+Xnji7yvt5yaWbaYJNptoycrKcm9rJ9QsP9hcOES32TMYAvke6j8GkrhiyDX5tspe
+eLR2kK3AUXHJ8EnpuBCknqyRn6GO/abUnoaL9iTNWfP2nknPgShtxbtChGydQCfs
+/HJx1h3FDwONBIDlrZaUWJ6CQlxF7dnFf3R4nsa43UNqry+5Np/GLWTlg7Srbjw8
+FMx0PBv4dHYq+2CCJQT9YSseP1J5y57aC0w2t1XUtsdiWUG4K4NsZV03pN4KyK0k
+yIK5bAc9GJGK/gXM7kr9x+oZJUfeYawt3pPuloQqcRn8HZxVn+GF90C0q6lfaQ+0
+QwRaVkvCOBMZFDtcUhXhO973bIhxlbKr2jfD/2peIpMYSG+dgh2KC/5W8xlPFGgD
+sy0M0gwlV6AZLw0SiuAgQ6/vEAXMn2oyjZukP56+5gx75wXz/4U=
+=hDiH
 -----END PGP SIGNATURE-----
 ```
 

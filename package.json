@@ -1,17 +1,17 @@
 {
-  "name": "parlaid",
+  "name": "parlance",
   "version": "1.4.1",
   "license": "MIT",
-  "description": "A Parler client library",
-  "repository": "https://github.com/castlelemongrab/parlaid",
+  "description": "A Parler client library and research tool",
+  "repository": "https://github.com/castlelemongrab/parlance",
   "dependencies": {
     "bent": "^7.3.6",
     "jsDump": "^1.1.0",
     "yargs": "^15.3.1"
   },
   "bin": {
-    "@castle-lemongrab/parlaid": "bin/parlaid",
-    "parlaid": "bin/parlaid"
+    "@castle-lemongrab/parlance": "bin/parlance",
+    "parlance": "bin/parlance"
   },
   "black": {
     "lives": "matter"

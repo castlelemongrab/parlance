@@ -119,7 +119,7 @@ const CLI = class extends Base {
 
       case 'write':
         profile = await client.profile();
-        await client.write_post(profile, args.c, true);
+        await client.write_post(profile, args.t, true);
         break;
 
       case 'delete':

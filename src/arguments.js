@@ -210,11 +210,11 @@ const Arguments = class extends Base {
       )
       .command(
         'write', 'Post a new message to your account', {
-          c: {
+          t: {
             type: 'string',
-            alias: 'content',
+            alias: 'text',
             demandOption: true,
-            describe: 'The content of the message'
+            describe: 'The textual content to post'
           }
         }
       )
