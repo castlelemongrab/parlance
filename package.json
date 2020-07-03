@@ -29,7 +29,10 @@
     "test": "echo 'No tests currently available; see issue #10' && exit 1"
   },
   "keywords": [
-    "osint", "parler", "speech", "twitter"
+    "osint",
+    "parler",
+    "speech",
+    "twitter"
   ],
   "black": {
     "lives": "matter"

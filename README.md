@@ -35,18 +35,16 @@ Usage
 parlance <command>
 
 Commands:
-  parlance feed        Fetch your own feed of posts
-  parlance feedechoes  Fetch your own feed of echoed posts
-  parlance profile     Fetch a user profile
-  parlance post        Fetch a single post by identifier
-  parlance posts       Fetch all posts for a user
-  parlance echoes      Fetch all echoes for a user
-  parlance following   Fetch all users followed by a user
-  parlance followers   Fetch all followers of a user
-  parlance comments    Fetch all comments for a user or post
-  parlance votes       Fetch all votes made by a user
-  parlance write       Post a new message to your account
-  parlance delete      Delete an existing message from your account
+  parlance feed       Fetch your own feed of posts
+  parlance profile    Fetch a user profile
+  parlance post       Fetch a single post by identifier
+  parlance posts      Fetch all posts for a user
+  parlance following  Fetch all users followed by a user
+  parlance followers  Fetch all followers of a user
+  parlance comments   Fetch all comments for a user, post, or comment
+  parlance votes      Fetch all votes made by a user
+  parlance write      Post a new message to your account
+  parlance delete     Delete an existing message from your account
 
 Options:
   --version              Show version number                           [boolean]
@@ -59,6 +57,7 @@ Options:
   -v, --verbose          Print debug information to stderr             [boolean]
   -q, --quiet            Print less information to stderr              [boolean]
   -s, --silent           Print absolutely no information to stderr     [boolean]
+
 ```
 ```
 parlance posts
@@ -67,15 +66,17 @@ Fetch all posts for a user
 
 Options:
   -u, --username         The name of the user                           [string]
+  -e, --echoes           Include echoed posts                          [boolean]
 ```
 ```
 parlance comments
 
-Fetch all comments for a user or post
+Fetch all comments for a user, post, or comment
 
 Options:
   -u, --username         The name of the user                           [string]
   -i, --identifier       The unique identifier of the post              [string]
+  -r, --replies          The unique identifier of the comment           [string]
 ```
 ```
 parlance write
@@ -92,12 +93,7 @@ Delete an existing message from your account
 
 Options:
   -i, --identifier       The unique identifier of the post   [string] [required]
-
 ```
-
-If the `username` parameter is omitted for any subcommand where it is relevant,
-Parlance will default to using your own account's username.
-
 Legal
 -----
 

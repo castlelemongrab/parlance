@@ -184,7 +184,7 @@ const Arguments = class extends Base {
             conflicts: [ 'i', 'r' ],
             describe: 'The name of the user'
           },
-          p: {
+          i: {
             type: 'string',
             alias: 'identifier',
             conflicts: [ 'u', 'r' ],
