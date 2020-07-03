@@ -55,9 +55,9 @@ const ISO8601X = {
   },
 
   /**
-    Parse a high-resolution numeric timestamp string and return a two-tuple
-    of numbers - an "extended" parsed timestamp - suitable for use with
-    the unparse_extended and compare_extended methods in this class.
+    Parse a high-resolution ISO 8601 and/or numeric timestamp string, and
+    return a two-tuple of numbers - an "extended" parsed timestamp suitable
+    for use with the unparse_extended and compare_extended methods.
     @arg _string {string} - The string to parse.
     @returns {Array}
   */
@@ -70,7 +70,10 @@ const ISO8601X = {
       throw new Error('Invalid extended timestamp');
     }
 
-    let ts = parseInt(pair[0], 10);
+    let ts = (
+      pair[0].match(/^\d+$/) ?
+        parseInt(pair[0], 10) : ISO8601X.parse(pair[0])
+    );
 
     if (isNaN(ts)) {
       throw new Error('Invalid timestamp millisecond count');

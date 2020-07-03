@@ -229,10 +229,11 @@ const Client = class extends Base {
       /* Enforce monotonicity */
       if (!is_first_page && is_next_key_valid) {
         try {
+          let prev_key_parsed = ISO8601X.parse_extended(prev_key);
           let next_key_parsed = ISO8601X.parse_extended(next_key);
 
           key_comparison = ISO8601X.compare_extended(
-            ISO8601X.parse_extended(prev_key), next_key_parsed
+            prev_key_parsed, next_key_parsed
           );
 
           if (this.log_level > 1) {
