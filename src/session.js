@@ -37,7 +37,7 @@ const Session = class extends Base {
   async set_headers (_headers) {
 
     this._headers = (_headers || {});
-    await this._update_credentials();
+    await this._update_credentials_from_headers();
 
     return this;
   }

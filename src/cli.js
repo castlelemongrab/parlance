@@ -25,7 +25,7 @@ const CLI = class extends Base {
 
   async run () {
 
-    let config, profile;
+    let profile = {}, config = {};
     let args = this._args.parse();
 
     if (args.n) {
@@ -46,11 +46,15 @@ const CLI = class extends Base {
       this._out.fatal('Page size must be greater than zero');
     }
 
-    try {
-      let json_config = await fs.readFile(args.c);
-      config = JSON.parse(json_config);
-    } catch (_e) {
-      this._out.fatal(`Unable to read authorization data from ${args.a}`, 2);
+    if (args._[0] === 'init') {
+      config.mst = args.mst; config.jst = args.jst;
+    } else {
+      try {
+        let json_config = await fs.readFile(args.c);
+        config = JSON.parse(json_config);
+      } catch (_e) {
+        this._out.fatal(`Unable to read authorization data from ${args.c}`, 2);
+      }
     }
 
     let credentials = new Credentials(config.mst, config.jst);
@@ -64,6 +68,7 @@ const CLI = class extends Base {
     });
 
     /* Be human-friendly */
+    let wrote_credentials = false;
     let mst = decodeURIComponent(config.mst);
     let jst = decodeURIComponent(config.jst);
 
@@ -71,6 +76,7 @@ const CLI = class extends Base {
       this._out.warn('Detected invalid URI-encoded credentials; correcting');
       client.credentials.mst = mst; client.credentials.jst = jst;
       client.session.write_credentials();
+      wrote_credentials = true;
     }
 
     /* Command dispatch */
@@ -78,11 +84,11 @@ const CLI = class extends Base {
 
       case 'init':
         if (!args.o) {
-          this._out.warn('Please use the -o/--credentials-out option');
           this._out.fatal('Refusing to continue without an output file');
         }
-        client.session.update_credentials({ mst: args.mst, jst: args.jst });
-        client.session.write_credentials();
+        if (!wrote_credentials) {
+          client.session.write_credentials();
+        }
         break;
 
       case 'profile':
