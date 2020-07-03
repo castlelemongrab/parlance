@@ -19,7 +19,7 @@ const Ratelimit = class extends Base {
     /* To do: this probably isn't ideal */
     this._crypto = require('crypto');
 
-    this._rng_divisor = 64;
+    this._rng_divisor = 48;
     this._headers = (_headers || {});
     this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());

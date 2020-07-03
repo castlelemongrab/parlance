@@ -79,7 +79,7 @@ const Session = class extends Base {
       }
     } else if (!_is_initial_update) {
       this._out.warn('Please use the -o option to save credentials');
-      this._out.warn('Newly-issued server credentials may have been lost');
+      this._out.warn('Updated client credentials may have been lost');
     }
 
     return this;

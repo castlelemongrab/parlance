@@ -52,7 +52,7 @@ const Arguments = class extends Base {
         'o', {
           type: 'string',
           alias: 'credentials-out',
-          describe: 'Credentials output file'
+          describe: 'Output file for server-rotated credentials'
         }
       )
       .option(
@@ -150,11 +150,6 @@ const Arguments = class extends Base {
             type: 'string',
             alias: 'username',
             describe: 'The name of the user'
-          },
-          e: {
-            type: 'boolean',
-            alias: 'echoes',
-            describe: 'Include echoed posts'
           }
         }
       )

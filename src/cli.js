@@ -100,9 +100,9 @@ const CLI = class extends Base {
         break;
 
       case 'comments':
-        if (args.p) {
-          await this._ensure_post_exists(client, args.p); /* Yikes */
-          await client.print_post_comments(args.p);
+        if (args.i) {
+          await this._ensure_post_exists(client, args.i); /* Yikes */
+          await client.print_post_comments(args.i);
         } else if (args.r) {
           profile = await client.profile();
           await client.print_comment_replies(profile, args.r);

@@ -445,9 +445,9 @@ const Client = class extends Base {
       }
     );
 
-    return await response.json();
+    let rv = await response.json();
+    return this._reparent_posts(rv);
   }
-
 
   async _request_votes (_profile, _start_ts) {
 
@@ -455,7 +455,8 @@ const Client = class extends Base {
       'v1/post/creator/liked', _profile, _start_ts
     );
 
-    return await response.json();
+    let rv = await response.json();
+    return this._reparent_posts(rv);
   }
 
   /** Paged API print functions **/
