@@ -21,7 +21,7 @@ I have undertaken an act of public First Amendment protected speech: I've
 concisely documented the full engineering design and implementation of Parler.
 I've engaged in this act of speech while abiding by all applicable laws, terms
 of service, and technical access controls. This task required one week, and
-required only personal knowledge third-party documentation.
+required only personal knowledge and third-party documentation.
 
 Happy Independence Day. May freedom of speech and all its complex implications
 continue to reign supreme, and may God continue to bless the United States of
