@@ -199,6 +199,16 @@ const Arguments = class extends Base {
         }
       )
       .command(
+        'tag', 'Fetch all posts mentioning a hashtag', {
+          t: {
+            alias: 'tag',
+            type: 'string',
+            demandOption: true,
+            describe: 'The hashtag, without the hash sign'
+          }
+        }
+      )
+      .command(
         'votes', 'Fetch all votes made by a user', {
           u: {
             type: 'string',

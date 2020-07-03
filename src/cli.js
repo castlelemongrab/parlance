@@ -122,6 +122,11 @@ const CLI = class extends Base {
         await client.print_followers(profile);
         break;
 
+      case 'tag':
+        profile = await client.profile(args.u);
+        await client.print_tag({ tag: args.t });
+        break;
+
       case 'votes':
         profile = await client.profile(args.u);
         await client.print_votes(profile);

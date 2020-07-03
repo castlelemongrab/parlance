@@ -132,6 +132,8 @@ const Client = class extends Base {
       rv.Referrer += `profile/${encodeURIComponent(_args.username)}/posts`;
     } else if (_args.id) {
       rv.Referrer += `post-view?q=${encodeURIComponent(_args.id)}`;
+    } else if (_args.tag) {
+      rv.Referrer += `?hashtag=${encodeURIComponent(_args.tag)}`;
     }
 
     return rv;
@@ -435,6 +437,18 @@ const Client = class extends Base {
     return await response.json();
   }
 
+  async _request_tag (_profile, _start_ts) {
+
+    const response = await this._paged_request_one(
+      'v1/post/hashtag', _profile, _start_ts, (_profile) => {
+        return `tag=${encodeURIComponent(_profile.tag)}`;
+      }
+    );
+
+    return await response.json();
+  }
+
+
   async _request_votes (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -636,6 +650,17 @@ const Client = class extends Base {
         '_request_post_comments', 'comments'
     );
   }
+
+  async print_tag (_profile, _id) {
+
+    this.page_size = 10;
+
+    return this._print_generic(
+      { tag: _profile.tag }, /* Fix this */
+        '_request_tag', 'posts'
+    );
+  }
+
   async print_votes (_profile) {
 
     this.page_size = 10;

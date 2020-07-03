@@ -42,6 +42,7 @@ Commands:
   parlance following  Fetch all users followed by a user
   parlance followers  Fetch all followers of a user
   parlance comments   Fetch all comments for a user, post, or comment
+  parlance tag        Fetch all posts mentioning a hashtag
   parlance votes      Fetch all votes made by a user
   parlance write      Post a new message to your account
   parlance delete     Delete an existing message from your account
@@ -57,7 +58,6 @@ Options:
   -v, --verbose          Print debug information to stderr             [boolean]
   -q, --quiet            Print less information to stderr              [boolean]
   -s, --silent           Print absolutely no information to stderr     [boolean]
-
 ```
 ```
 parlance posts
@@ -77,6 +77,14 @@ Options:
   -u, --username         The name of the user                           [string]
   -i, --identifier       The unique identifier of the post              [string]
   -r, --replies          The unique identifier of the comment           [string]
+```
+```
+parlance tag
+
+Fetch all posts mentioning a hashtag
+
+Options:
+  -t, --tag              The hashtag, without the hash sign  [string] [required]
 ```
 ```
 parlance write
