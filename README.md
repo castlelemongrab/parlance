@@ -12,7 +12,7 @@ Installation and Configuration
 
 First, run `npm install -g @castlelemongrab/parlance` to fetch the software
 and all required dependencies. After installation completes, run `parlance`
-to see usage information.
+to see usage information. You'll need Node.js version ten or higher.
 
 Then, log in to Parler using an ordinary web browser. Use your browser's
 development tools and/or cookie storage interface to find Parler's `MST`
@@ -22,7 +22,7 @@ development tools and/or cookie storage interface to find Parler's `MST`
 with the MST and JST values from your browser. If your browser supplies you
 with URI-encoded versions of these values, you should decode them prior to use
 to avoid duplicate HTTPS requests and/or warning messages from the tool.
-Any future automation of the above login process is unlikely to be accepted.
+Any automation of the above login process is unlikely to be accepted.
 
 Results for all subcommands are printed to standard output as a JSON-encoded
 array of objects.
