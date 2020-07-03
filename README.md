@@ -22,9 +22,10 @@ development tools and/or cookie storage interface to find Parler's `MST`
 with the MST and JST values from your browser. If your browser supplies you
 with URI-encoded versions of these values, you should decode them prior to use
 to avoid duplicate HTTPS requests and/or warning messages from the tool.
-
 Any future automation of the above login process is unlikely to be accepted.
 
+Results for all subcommands are printed to standard output as a JSON-encoded
+array of objects.
 
 Usage
 -----
