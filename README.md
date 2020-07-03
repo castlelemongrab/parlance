@@ -7,26 +7,24 @@ accepts real money to buy "influence" points to boost organic non-advertising
 content. The authors will refrain from commenting on this business model.
 
 
-
 Installation and Configuration
 ------------------------------
 
-First, run `npm install @castlelemongrab/parlance` to fetch the software and
-all required dependencies.
+First, run `npm install -g @castlelemongrab/parlance` to fetch the software
+and all required dependencies. After installation completes, run `parlance`
+to see usage information.
 
-Then, log in to Parler using an ordinary web browser. Use that browser's
-development tools and/or cookie storage interface to capture the `MST` (Master
-Session Token) and `JST` (a shorter-lived session token). Replace the empty
-strings in `config/auth.json` with these values. If your browser supplies you
-with URI-encoded versions of these values, you must decode them prior to use –
-the utility expects them in their raw, unencoded form. Future automation of this
-process is unlikely to be feasible.
+Then, log in to Parler using an ordinary web browser. Use your browser's
+development tools and/or cookie storage interface to find Parler's `MST`
+(Master Session Token) and `JST` (a short-lived session token). Use the
+`init` subcommand to create an authorization file, or replace the strings in
+[config/auth.json](https://github.com/castlelemongrab/parlance/blob/master/config/auth.json)
+with the MST and JST values from your browser. If your browser supplies you
+with URI-encoded versions of these values, you should decode them prior to use
+to avoid duplicate HTTPS requests and/or warning messages from the tool.
 
-If you don't know what this means or how to accomplish it, please do not use
-this software at this time. This early version is currently intended for
-research purposes and law enforcement.
+Any future automation of the above login process is unlikely to be accepted.
 
-Once you've completed the above, use Node v14 or higher to run `bin/parlance`.
 
 Usage
 -----
@@ -35,6 +33,7 @@ Usage
 parlance <command>
 
 Commands:
+  parlance init       Create an authorization file
   parlance feed       Fetch your own feed of posts
   parlance profile    Fetch a user profile
   parlance post       Fetch a single post by identifier
@@ -51,7 +50,7 @@ Options:
   --version              Show version number                           [boolean]
   -h, --help             Show help                                     [boolean]
   -c, --credentials      Credentials file [string] [default: "config/auth.json"]
-  -o, --credentials-out  Credentials output file                        [string]
+  -o, --credentials-out  Output file for client credentials             [string]
   -l, --ignore-last      Rely solely upon time comparisons             [boolean]
   -n, --no-delay         Disable the failsafe rate-limiter             [boolean]
   -p, --page-limit       Set the page size limit                        [number]
@@ -60,13 +59,22 @@ Options:
   -s, --silent           Print absolutely no information to stderr     [boolean]
 ```
 ```
+parlance init
+
+Create an authorization file
+
+Options:
+  -o, --credentials-out  Output file for client credentials             [string]
+  --mst                  The MST master session token        [string] [required]
+  --jst                  The shorter-lived JST session token [string] [required]
+```
+```
 parlance posts
 
 Fetch all posts for a user
 
 Options:
   -u, --username         The name of the user                           [string]
-  -e, --echoes           Include echoed posts                          [boolean]
 ```
 ```
 parlance comments
@@ -101,7 +109,10 @@ Delete an existing message from your account
 
 Options:
   -i, --identifier       The unique identifier of the post   [string] [required]
+
 ```
+
+
 Legal
 -----
 
@@ -126,6 +137,7 @@ prohibited act – was necessary to create the work contained herein.
 > "Communication does not lose constitutional protection as 'speech' simply because it is expressed in the language of computer code. Mathematical formulae and musical scores are written in 'code,' i.e. symbolic notations not comprehensible to the uninitiated, and yet both are covered by the First Amendment. If someone chose to write a novel entirely in computer object code by using strings of 1’s and 0’s for each letter of each word, the resulting work would be no different for constitutional purposes than if it had been written in English." – DMCA, Universal City Studios v. Corley, FN191: 273 F.3d 429, 60 USPQ2d 1953 (2nd Cir. 2001)
 
 > Congress shall make no law respecting an establishment of religion, or prohibiting the free exercise thereof; or abridging the freedom of speech, or of the press; or the right of the people peaceably to assemble, and to petition the Government for a redress of grievances.
+
 
 Credits
 -------
@@ -157,6 +169,7 @@ sy0M0gwlV6AZLw0SiuAgQ6/vEAXMn2oyjZukP56+5gx75wXz/4U=
 =hDiH
 -----END PGP SIGNATURE-----
 ```
+
 
 License
 -------

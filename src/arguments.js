@@ -52,7 +52,7 @@ const Arguments = class extends Base {
         'o', {
           type: 'string',
           alias: 'credentials-out',
-          describe: 'Output file for server-rotated credentials'
+          describe: 'Output file for client credentials'
         }
       )
       .option(
@@ -120,6 +120,20 @@ const Arguments = class extends Base {
           default: undefined,
           conflicts: [ 'v', 'q' ],
           describe: 'Print absolutely no information to stderr'
+        }
+      )
+      .command(
+        'init', 'Create an authorization file', {
+          'mst': {
+            type: 'string',
+            demandOption: true,
+            describe: 'The MST master session token'
+          },
+          'jst': {
+            type: 'string',
+            demandOption: true,
+            describe: 'The shorter-lived JST session token'
+          }
         }
       )
       .command(

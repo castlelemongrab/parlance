@@ -153,7 +153,7 @@ const OutputNode = class extends Output {
       /* Ignore exception */
     }
 
-    this.exit(_status);
+    this.exit(_status || 127);
   }
 };
 

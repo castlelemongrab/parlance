@@ -76,6 +76,15 @@ const CLI = class extends Base {
     /* Command dispatch */
     switch (args._[0]) {
 
+      case 'init':
+        if (!args.o) {
+          this._out.warn('Please use the -o/--credentials-out option');
+          this._out.fatal('Refusing to continue without an output file');
+        }
+        client.session.update_credentials({ mst: args.mst, jst: args.jst });
+        client.session.write_credentials();
+        break;
+
       case 'profile':
         await client.profile(args.u, true);
         break;

@@ -42,7 +42,7 @@ const Session = class extends Base {
     return this;
   }
 
-  async _update_credentials () {
+  async _update_credentials_from_headers () {
 
     let cookies = this.headers['set-cookie'];
 
@@ -53,15 +53,21 @@ const Session = class extends Base {
     let parsed = Cookie.parse_array(cookies);
 
     for (var i = 0, len = parsed.length; i < len; ++i) {
-
-      [ 'mst', 'jst' ].forEach((_k) => {
-        if (parsed[i][_k]) {
-          this._credentials[_k] = decodeURIComponent(parsed[i][_k]);
-        }
-      });
+      this.update_credentials(parsed[i]);
     }
 
     return await this.write_credentials(true);
+  }
+
+  async update_credentials (_object) {
+
+    [ 'mst', 'jst' ].forEach((_k) => {
+      if (_object[_k]) {
+        this._credentials[_k] = decodeURIComponent(_object[_k]);
+      }
+    });
+
+    return this;
   }
 
   async write_credentials(_is_initial_update) {
