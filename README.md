@@ -10,9 +10,12 @@ content. The authors will refrain from commenting on this business model.
 Installation and Configuration
 ------------------------------
 
+You'll need at least Node.js v8.17.0 (Carbon LTS) to run Parlance – although
+we recommend using the latest available stable version (currently v14.2.0).
+
 First, run `npm install -g @castlelemongrab/parlance` to fetch the software
 and all required dependencies. After installation completes, run `parlance`
-to see usage information. You'll need Node.js version ten or higher.
+to see usage information.
 
 Then, log in to Parler using an ordinary web browser. Use your browser's
 development tools and/or cookie storage interface to find Parler's `MST`
