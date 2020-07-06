@@ -6,7 +6,6 @@ const Base = require('./base');
 const Out = require('./output');
 const Cookie = require('./cookie');
 const Credentials = require('./credentials');
-const fs = require('fs'); /* Promises kept */
 const jsdump = require('jsDump'); /* More human than human */
 
 /**
@@ -74,14 +73,10 @@ const Session = class extends Base {
 
     if (this._output_file) {
       try {
-      let args = [
-        this._output_file, jsdump.parse(this._credentials.toObject())
-      ];
-      if (fs.promises) {
-        await fs.promises.writeFile.apply(fs, args);
-      } else {
-        fs.writeFileSync.apply(fs, args);
-      }
+        await this._out.write_file(
+          this._output_file,
+            jsdump.parse(this._credentials.toObject()) + "\n"
+        );
         this._out.log_level(
           'credentials', 'Credentials file was updated', this.log_level, 0
         );

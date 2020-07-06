@@ -2,6 +2,8 @@
 
 'use strict';
 
+const Oath = require('./oath');
+
 /**
   A simple console output base class.
   @extends Base
@@ -111,6 +113,7 @@ const OutputNode = class extends Output {
     super(_options);
 
     /* To do: this probably isn't ideal */
+    this._fs = require('fs');
     this._process = require('process');
 
     return this;
@@ -154,6 +157,30 @@ const OutputNode = class extends Output {
     }
 
     this.exit(_status || 127);
+  }
+
+  /**
+  **/
+  async read_file (_path) {
+
+    let fn = (
+      this._fs.promises ?
+        this._fs.promises.readFile : Oath.promisify(this._fs.readFile)
+    );
+
+    return await fn(_path);
+  }
+
+  /**
+  **/
+  async write_file (_path, _data) {
+
+    let fn = (
+      this._fs.promises ?
+        this._fs.promises.writeFile : Oath.promisify(this._fs.writeFile)
+    );
+
+    return await fn(_path, _data);
   }
 };
 

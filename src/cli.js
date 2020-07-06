@@ -7,7 +7,6 @@ const Out = require('./output');
 const Client = require('./client');
 const Arguments = require('./arguments');
 const Credentials = require('./credentials');
-const fs = require('fs'); /* Promises kept */
 
 /**
   The command-line interface to Parlaid.
@@ -50,12 +49,7 @@ const CLI = class extends Base {
       config.mst = args.mst; config.jst = args.jst;
     } else {
       try {
-        let json_config;
-        if (fs.promises) {
-          json_config = await fs.promises.readFile(args.c);
-        } else {
-          json_config = await fs.readFileSync(args.c);
-        }
+        let json_config = await this._out.read_file(args.c);
         config = JSON.parse(json_config);
       } catch (_e) {
         this._out.fatal(`Unable to read authorization data from ${args.c}`, 2);
