@@ -53,9 +53,9 @@ const CLI = class extends Base {
         let json_config;
         if (fs.promises) {
           json_config = await fs.promises.readFile(args.c);
-	} else {
+        } else {
           json_config = await fs.readFileSync(args.c);
-	}
+        }
         config = JSON.parse(json_config);
       } catch (_e) {
         this._out.fatal(`Unable to read authorization data from ${args.c}`, 2);
