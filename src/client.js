@@ -333,63 +333,87 @@ const Client = class extends Base {
 
   /** Generic threading functions **/
 
-  _reparent (_o, _target_key, _hash_key, _target_properties) {
+  _reparent (_targets, _refs, _target_properties) {
 
     let refhash = {};
-    let o = (_o || {});
-    let refs = o[_hash_key];
-    let targets = o[_target_key];
-
-    if (!Array.isArray(targets) || !Array.isArray(refs)) {
-      throw new Error(`Expected ${_target_key} and ${_hash_key} to be arrays`);
-    }
 
     /* Smoke it up */
-    for (let i = 0, len = refs.length; i < len; ++i) {
-      if (typeof refs[i] !== 'object') {
-        throw new Error(`Expected ${_hash_key} at ${i} to be an object`);
+    for (let i = 0, len = _refs.length; i < len; ++i) {
+      if (typeof _refs[i] !== 'object') {
+        throw new Error(`Expected object at ${i} reference array`);
       }
-      refhash[refs[i].id] = refs[i];
+      refhash[_refs[i].id || _refs[i]._id] = _refs[i];
     }
 
     /* And improvise */
-    for (let i = 0, len = targets.length; i < len; ++i) {
-      if (typeof targets[i] !== 'object') {
-        throw new Error(`Expected object in ${_target_key} at index ${i}`);
+    for (let i = 0, len = _targets.length; i < len; ++i) {
+
+      if (typeof _targets[i] !== 'object') {
+        throw new Error(`Expected object at ${i} in targets array`);
       }
 
       /* A brief comment:
           If you're a backend engineer and do this to your frontend
           team, you are committing a crime and should be disciplined. */
 
-      // [ 'parent', 'root' ]
       _target_properties.forEach((_k) => {
-        if (targets[i][_k]) {
-          if (refhash[targets[i][_k]]) {
-            targets[i][_k] = refhash[targets[i][_k]];
-          } else {
-            this._out.warn(
-              `Target ${_target_key} at index ${i} refers to invalid ${_k}`
-            );
-          }
-        }
+        this._reparent_one(_targets[i], refhash, _k);
       });
     }
 
-    return _o;
+    return this;
+  }
+
+  _reparent_one (_target, _refhash, _key) {
+
+    let target_id = (_key ? _target[_key] : _target);
+
+    if (target_id) {
+      if (_refhash[target_id]) {
+        _target[_key] = _refhash[target_id];
+      } else {
+        throw new Error(`Object refers to invalid UUID ${target_id}`);
+      }
+    }
+
+    return this;
+  }
+
+  _objectify_post_links (_posts) {
+
+    for (let i = 0, ln1 = _posts.length; i < ln1; ++i) {
+    }
+
+    return this;
   }
 
   _reparent_all (_o) {
 
-    let rv = this._reparent(
-      _o, 'posts', 'postRefs', [ 'parent', 'root' ]
+    /* Expand author */
+    this._reparent(
+      (_o.posts || []), (_o.users || []), [ 'creator' ]
     );
 
-    rv = this._reparent(
-      rv, 'posts', 'users', [ 'creator' ]
+    /* Expand parent/root */
+    this._reparent(
+      (_o.posts || []), (_o.postRefs || []), [ 'parent', 'root' ]
     );
 
-    return rv;
+    /* Expand links */
+    for (let i = 0, len = _o.posts.length; i < len; ++i) {
+      /* Objectify link string */
+      if (_o.posts[i].links) {
+        for (let j = 0, ln2 = _o.posts[i].links.length; j < ln2; ++j) {
+          _o.posts[i].links[j] = { link: _o.posts[i].links[j] };
+        }
+      }
+      /* Reparent link object */
+      this._reparent(
+        (_o.posts[i].links || []), (_o.urls || []), [ 'link' ]
+      );
+    }
+
+    return _o;
   }
 
   /** Paged API request callbacks **/
