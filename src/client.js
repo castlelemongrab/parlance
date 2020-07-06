@@ -331,49 +331,65 @@ const Client = class extends Base {
     return rv;
   }
 
-  /** Post threading functions **/
+  /** Generic threading functions **/
 
-  _reparent_posts (_o) {
+  _reparent (_o, _target_key, _hash_key, _target_properties) {
 
     let refhash = {};
     let o = (_o || {});
-    let posts = o.posts;
-    let postrefs = o.postRefs;
+    let refs = o[_hash_key];
+    let targets = o[_target_key];
 
-    if (!Array.isArray(posts) || !Array.isArray(postrefs)) {
-      throw new Error('Expected posts and postRefs to be arrays');
+    if (!Array.isArray(targets) || !Array.isArray(refs)) {
+      throw new Error(`Expected ${_target_key} and ${_hash_key} to be arrays`);
     }
 
     /* Smoke it up */
-    for (let i = 0, len = postrefs.length; i < len; ++i) {
-      if (typeof postrefs[i] !== 'object') {
-        throw new Error(`Expected postRef at index ${i} to be an object`);
+    for (let i = 0, len = refs.length; i < len; ++i) {
+      if (typeof refs[i] !== 'object') {
+        throw new Error(`Expected ${_hash_key} at ${i} to be an object`);
       }
-      refhash[postrefs[i]._id] = postrefs[i];
+      refhash[refs[i].id] = refs[i];
     }
 
     /* And improvise */
-    for (let i = 0, len = posts.length; i < len; ++i) {
-      if (typeof posts[i] !== 'object') {
-        throw new Error(`Expected post at index ${i} to be an object`);
+    for (let i = 0, len = targets.length; i < len; ++i) {
+      if (typeof targets[i] !== 'object') {
+        throw new Error(`Expected object in ${_target_key} at index ${i}`);
       }
 
       /* A brief comment:
           If you're a backend engineer and do this to your frontend
           team, you are committing a crime and should be disciplined. */
 
-      [ 'parent', 'root' ].forEach((_k) => {
-        if (posts[i][_k]) {
-          if (refhash[posts[i][_k]]) {
-            posts[i][_k] = refhash[posts[i][_k]];
+      // [ 'parent', 'root' ]
+      _target_properties.forEach((_k) => {
+        if (targets[i][_k]) {
+          if (refhash[targets[i][_k]]) {
+            targets[i][_k] = refhash[targets[i][_k]];
           } else {
-            this._out.warn(`Post at index ${i} refers to an invalid ${_k}`);
+            this._out.warn(
+              `Target ${_target_key} at index ${i} refers to invalid ${_k}`
+            );
           }
         }
       });
     }
 
     return _o;
+  }
+
+  _reparent_all (_o) {
+
+    let rv = this._reparent(
+      _o, 'posts', 'postRefs', [ 'parent', 'root' ]
+    );
+
+    rv = this._reparent(
+      rv, 'posts', 'users', [ 'creator' ]
+    );
+
+    return rv;
   }
 
   /** Paged API request callbacks **/
@@ -385,7 +401,7 @@ const Client = class extends Base {
     );
 
     let rv = await response.json();
-    return this._reparent_posts(rv);
+    return this._reparent_all(rv);
   }
 
   async _request_creator (_profile, _start_ts) {
@@ -395,7 +411,7 @@ const Client = class extends Base {
     );
 
     let rv = await response.json();
-    return this._reparent_posts(rv);
+    return this._reparent_all(rv);
   }
 
   async _request_following (_profile, _start_ts) {
@@ -447,7 +463,7 @@ const Client = class extends Base {
     );
 
     let rv = await response.json();
-    return this._reparent_posts(rv);
+    return this._reparent_all(rv);
   }
 
   async _request_votes (_profile, _start_ts) {
@@ -457,7 +473,7 @@ const Client = class extends Base {
     );
 
     let rv = await response.json();
-    return this._reparent_posts(rv);
+    return this._reparent_all(rv);
   }
 
   /** Paged API print functions **/
