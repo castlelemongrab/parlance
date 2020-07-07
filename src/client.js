@@ -352,10 +352,6 @@ const Client = class extends Base {
         throw new Error(`Expected object at ${i} in targets array`);
       }
 
-      /* A brief comment:
-          If you're a backend engineer and do this to your frontend
-          team, you are committing a crime and should be disciplined. */
-
       _target_properties.forEach((_k) => {
         this._reparent_one(_targets[i], refhash, _k);
       });
@@ -366,22 +362,39 @@ const Client = class extends Base {
 
   _reparent_one (_target, _refhash, _key) {
 
-    let target_id = (_key ? _target[_key] : _target);
+    let value = _target[_key];
 
-    if (target_id) {
-      if (_refhash[target_id]) {
-        _target[_key] = _refhash[target_id];
-      } else {
-        throw new Error(`Object refers to invalid UUID ${target_id}`);
-      }
+    if (!value) {
+      return this;
     }
 
-    return this;
-  }
+    /* A brief comment:
+        If you're a backend engineer and do this to your frontend
+        team, you are committing a crime and should be disciplined. */
 
-  _objectify_post_links (_posts) {
+    if (Array.isArray(value)) {
 
-    for (let i = 0, ln1 = _posts.length; i < ln1; ++i) {
+      let rv = [];
+
+      /* Handle an array of UUIDs */
+      for (let i = 0, len = value.length; i < len; ++i) {
+        if (_refhash[value[i]]) {
+          rv.push(_refhash[value[i]]);
+        } else {
+          throw new Error(`Reference to invalid UUID ${value[i]} at ${i}`);
+        }
+      }
+
+      _target[_key] = rv;
+
+    } else {
+
+      /* Handle a single UUID */
+      if (_refhash[value]) {
+        _target[_key] = _refhash[value];
+      } else {
+        throw new Error(`Reference to invalid UUID ${value}`);
+      }
     }
 
     return this;
@@ -400,18 +413,9 @@ const Client = class extends Base {
     );
 
     /* Expand links */
-    for (let i = 0, len = _o.posts.length; i < len; ++i) {
-      /* Objectify link string */
-      if (_o.posts[i].links) {
-        for (let j = 0, ln2 = _o.posts[i].links.length; j < ln2; ++j) {
-          _o.posts[i].links[j] = { link: _o.posts[i].links[j] };
-        }
-      }
-      /* Reparent link object */
-      this._reparent(
-        (_o.posts[i].links || []), (_o.urls || []), [ 'link' ]
-      );
-    }
+    this._reparent(
+      (_o.posts || []), (_o.urls || []), [ 'links' ]
+    );
 
     return _o;
   }
@@ -556,12 +560,16 @@ const Client = class extends Base {
 
     /* HTTPS request */
     const r = await request(url);
-    const rv = await r.json();
+    let rv = await r.json();
+
+    /* Reparent */
+    rv.posts = [ rv.post ];
+    this._reparent_all(rv);
 
     /* Optionally print results */
     if (_print_results) {
       this._start_json_results();
-      this._print_json_results([ rv ], true);
+      this._print_json_results(rv.posts, true);
       this._end_json_results();
     }
 
