@@ -37,18 +37,20 @@ Usage
 parlance <command>
 
 Commands:
-  parlance init       Create an authorization file
-  parlance feed       Fetch your own feed of posts
-  parlance profile    Fetch a user profile
-  parlance post       Fetch a single post by identifier
-  parlance posts      Fetch all posts for a user
-  parlance following  Fetch all users followed by a user
-  parlance followers  Fetch all followers of a user
-  parlance comments   Fetch all comments for a user, post, or comment
-  parlance tag        Fetch all posts mentioning a hashtag
-  parlance votes      Fetch all votes made by a user
-  parlance write      Post a new message to your account
-  parlance delete     Delete an existing message from your account
+  parlance init        Create an authorization file
+  parlance feed        Fetch your own feed of posts
+  parlance profile     Fetch a user profile
+  parlance post        Fetch a single post by identifier
+  parlance posts       Fetch all posts for a user
+  parlance following   Fetch all users followed by a user
+  parlance followers   Fetch all followers of a user
+  parlance comments    Fetch all comments for a user, post, or comment
+  parlance tag         Fetch all posts mentioning a hashtag
+  parlance votes       Fetch all votes made by a user
+  parlance write       Post a new message to your account
+  parlance delete      Delete an existing message from your account
+  parlance news        Fetch your own affiliate news feed
+  parlance moderation  Fetch your list of comments for moderation
 
 Options:
   --version              Show version number                           [boolean]
