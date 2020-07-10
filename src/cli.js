@@ -82,6 +82,9 @@ const CLI = class extends Base {
     switch (args._[0]) {
 
       case 'init':
+        if (args.c !== this._args.default_credentials_path) {
+          this._out.fatal('Credentials are unnecessary; please use -o');
+        }
         if (!args.o) {
           this._out.fatal('Refusing to continue without an output file');
         }
@@ -155,6 +158,14 @@ const CLI = class extends Base {
         profile = await client.profile(); /* For referrer */
         await this._ensure_post_exists(client, args.i); /* Yikes */
         await client.delete_post(profile, args.i, true);
+        break;
+
+      case 'news':
+        await client.print_affiliate_news();
+        break;
+
+      case 'moderation':
+        await client.print_moderation();
         break;
 
       default:

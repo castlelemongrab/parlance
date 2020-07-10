@@ -66,7 +66,7 @@ const ISO8601X = {
     let rv = [];
     let pair = _string.split(/_/);
 
-    if (pair.length !== 2) {
+    if (pair.length < 1 || pair.length > 2) {
       throw new Error('Invalid extended timestamp');
     }
 
@@ -79,7 +79,9 @@ const ISO8601X = {
       throw new Error('Invalid timestamp millisecond count');
     }
 
-    let seq = parseInt(pair[1], 10);
+    let seq = (
+      pair[1] ? parseInt(pair[1], 10) : 0
+    );
 
     if (isNaN(seq)) {
       throw new Error('Invalid timestamp extended sequence number');

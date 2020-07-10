@@ -17,7 +17,13 @@ const Arguments = class extends Base {
     /* To do: this probably isn't ideal */
     this._yargs = require('yargs');
 
+    this._default_credentials_path = 'config/auth.json';
     return this._setup();
+  }
+
+  get default_credentials_path () {
+
+    return this._default_credentials_path;
   }
 
   parse () {
@@ -44,8 +50,8 @@ const Arguments = class extends Base {
         'c', {
           type: 'string',
           alias: 'credentials',
-          default: 'config/auth.json',
-          describe: 'Credentials file'
+          describe: 'Credentials file',
+          default: this.default_credentials_path
         }
       )
       .option(
@@ -245,6 +251,12 @@ const Arguments = class extends Base {
             describe: 'The unique identifier of the post'
           }
         }
+      )
+      .command(
+        'news', 'Fetch your own affiliate news feed'
+      )
+      .command(
+        'moderation', 'Fetch your list of comments for moderation'
       );
 
     return this;

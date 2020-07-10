@@ -25,7 +25,7 @@ const Client = class extends Base {
 
     this._page_size_override = (
       this.options.page_size ?
-        parseInt(_options.page_size, 10) : 10
+        parseInt(_options.page_size, 10) : null
     );
 
     this._credentials = _credentials;
@@ -97,7 +97,10 @@ const Client = class extends Base {
     }
 
     let page_size = parseInt(_page_size, 10);
-    this._page_size = (page_size > 0 ? page_size : this._page_size);
+
+    if (page_size > 0) {
+      this._page_size = page_size;
+    }
 
     return this;
   }
@@ -123,17 +126,19 @@ const Client = class extends Base {
 
   _create_extra_headers (_args) {
 
+    let args = (_args || {});
+
     let rv = {
       'Accept-Language': 'en-us',
-      'Referrer': 'https://parler.com/'
+      'Referrer': (_args.referrer || 'https://parler.com')
     };
 
-    if (_args.username) {
-      rv.Referrer += `profile/${encodeURIComponent(_args.username)}/posts`;
-    } else if (_args.id) {
-      rv.Referrer += `post-view?q=${encodeURIComponent(_args.id)}`;
-    } else if (_args.tag) {
-      rv.Referrer += `?hashtag=${encodeURIComponent(_args.tag)}`;
+    if (args.username) {
+      rv.Referrer += `/profile/${encodeURIComponent(args.username)}/posts`;
+    } else if (args.id) {
+      rv.Referrer += `/post-view?q=${encodeURIComponent(args.id)}`;
+    } else if (args.tag) {
+      rv.Referrer += `/?hashtag=${encodeURIComponent(args.tag)}`;
     }
 
     return rv;
@@ -374,18 +379,14 @@ const Client = class extends Base {
 
     if (Array.isArray(value)) {
 
-      let rv = [];
-
       /* Handle an array of UUIDs */
       for (let i = 0, len = value.length; i < len; ++i) {
         if (_refhash[value[i]]) {
-          rv.push(_refhash[value[i]]);
+          value[i] = _refhash[value[i]];
         } else {
           throw new Error(`Reference to invalid UUID ${value[i]} at ${i}`);
         }
       }
-
-      _target[_key] = rv;
 
     } else {
 
@@ -397,7 +398,7 @@ const Client = class extends Base {
       }
     }
 
-    return this;
+    return _target;
   }
 
   _reparent_all (_o) {
@@ -468,7 +469,14 @@ const Client = class extends Base {
       }
     );
 
-    return await response.json();
+    let rv = await response.json();
+
+    /* Expand links */
+    this._reparent(
+      (rv.comments || []), (rv.urls || []), [ 'links' ]
+    );
+
+    return rv;
   }
 
   async _request_post_comments (_profile, _start_ts) {
@@ -502,6 +510,32 @@ const Client = class extends Base {
 
     let rv = await response.json();
     return this._reparent_all(rv);
+  }
+
+  async _request_affiliate_news (_profile, _start_ts) {
+
+    let profile = Object.assign((_profile || {}), {
+      referrer: 'https://parler.com/discover'
+    });
+
+    const response = await this._paged_request_one(
+      'v1/discover/news', profile, _start_ts
+    );
+
+    return await response.json();
+  }
+
+  async _request_moderation(_profile, _start_ts) {
+
+    let profile = Object.assign((_profile || {}), {
+      referrer: 'https://parler.com/moderation'
+    });
+
+    const response = await this._paged_request_one(
+      'v1/moderation/pending', profile, _start_ts
+    );
+
+    return await response.json();
   }
 
   /** Paged API print functions **/
@@ -605,6 +639,7 @@ const Client = class extends Base {
       this._end_json_results();
     }
 
+    await this._ratelimit.wait();
     return rv;
   }
 
@@ -633,6 +668,7 @@ const Client = class extends Base {
       this._end_json_results();
     }
 
+    await this._ratelimit.wait();
     return rv;
   }
 
@@ -675,6 +711,7 @@ const Client = class extends Base {
   async print_user_comments (_profile) {
 
     this.page_size = 10;
+
     return this._print_generic(
       _profile, '_request_user_comments', 'comments'
     );
@@ -696,7 +733,7 @@ const Client = class extends Base {
     this._temporarily_disable_page_size(); /* They do this */
 
     return this._print_generic(
-      { _id: _id, username: _profile.username }, /* Fix this */
+      { _id: _id, username: _profile.username },
         '_request_post_comments', 'comments'
     );
   }
@@ -717,6 +754,24 @@ const Client = class extends Base {
 
     return this._print_generic(
       _profile, '_request_votes', 'posts'
+    );
+  }
+
+  async print_affiliate_news (_profile) {
+
+    this.page_size = 20;
+
+    return this._print_generic(
+      _profile, '_request_affiliate_news', 'links'
+    );
+  }
+
+  async print_moderation (_profile) {
+
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._print_generic(
+      _profile, '_request_moderation', 'comments'
     );
   }
 };
