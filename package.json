@@ -39,8 +39,7 @@
     "bin",
     "src",
     "test",
-    "docs",
-    "config"
+    "docs"
   ],
   "black": {
     "lives": "matter"
