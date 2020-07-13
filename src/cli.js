@@ -161,8 +161,16 @@ const CLI = class extends Base {
         await client.delete_post(profile, args.i);
         break;
 
-      case 'news':
-        await client.print_affiliate_news();
+      case 'follow':
+        await client.follow(args.u);
+        break;
+
+      case 'unfollow':
+        await client.unfollow(args.u);
+        break;
+
+      case 'mute':
+        await client.mute(args.u);
         break;
 
       case 'moderation':

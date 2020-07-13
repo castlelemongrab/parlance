@@ -262,6 +262,36 @@ const Arguments = class extends Base {
         }
       )
       .command(
+        'follow', 'Follow a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
+        'unfollow', 'Unfollow an already-followed user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
+        'mute', 'Mute a user', {
+          u: {
+            type: 'string',
+            alias: 'username',
+            demandOption: true,
+            describe: 'The name of the user'
+          }
+        }
+      )
+      .command(
         'news', 'Fetch your own affiliate news feed'
       )
       .command(

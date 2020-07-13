@@ -32,7 +32,8 @@ const Client = class extends Base {
     this._credentials = _credentials;
     this._page_size_temporarily_disabled = false;
     this._ignore_last = !!this.options.ignore_last;
-    this._url = (this.options.url || 'https://api.parler.com/');
+    this._domain = (this.options.domain || 'parler.com');
+    this._url = (this.options.url || `https://api.${this.domain}/`);
 
     this._ua = (
       this.options.ua || [
@@ -56,7 +57,12 @@ const Client = class extends Base {
     return this;
   }
 
-  get session() {
+  get domain () {
+
+    return this._domain;
+  }
+
+  get session () {
 
     return this._session;
   }
@@ -163,6 +169,45 @@ const Client = class extends Base {
 
     return await this._request_generic(
       'POST', url, _profile, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  async follow (_username) {
+
+    let body = { username: _username }; /* Yikes */
+    let h = { referrer: `https://${this.domain}/feed` };
+    let url = `v1/follow?username=${encodeURIComponent(_username)}`;
+
+    return await this._request_generic(
+      'POST', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  async unfollow (_username) {
+
+    let body = { username: _username }; /* Yikes */
+    let h = { referrer: `https://${this.domain}/feed` };
+    let url = `v1/follow/delete?username=${encodeURIComponent(_username)}`;
+
+    return await this._request_generic(
+      'POST', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  async mute (_username) {
+
+    let body = { username: _username }; /* Yikes */
+    let h = { referrer: `https://${this.domain}/feed` };
+    let url = `v1/user/mute?username=${encodeURIComponent(_username)}`;
+
+    return await this._request_generic(
+      'POST', url, h, async (_r, _json) => {
         return await this._request_print_generic([ _json ]);
       }, body
     );
@@ -283,7 +328,7 @@ const Client = class extends Base {
 
     headers = Object.assign(_headers, {
       'User-Agent': this.user_agent,
-      'Origin': 'https://parler.com',
+      'Origin': `https://${this.domain}`,
       'Cookie': `jst=${jst}; mst=${mst}`
     });
 
@@ -296,7 +341,7 @@ const Client = class extends Base {
 
     let rv = {
       'Accept-Language': 'en-us',
-      'Referrer': (_args.referrer || 'https://parler.com')
+      'Referrer': (_args.referrer || `https://${this.domain}`)
     };
 
     if (args.username) {
@@ -694,7 +739,7 @@ const Client = class extends Base {
   async _request_affiliate_news (_profile, _start_ts) {
 
     let profile = Object.assign((_profile || {}), {
-      referrer: 'https://parler.com/discover'
+      referrer: `https://${this.domain}/discover`
     });
 
     const response = await this._paged_request_one(
@@ -707,7 +752,7 @@ const Client = class extends Base {
   async _request_moderation(_profile, _start_ts) {
 
     let profile = Object.assign((_profile || {}), {
-      referrer: 'https://parler.com/moderation'
+      referrer: `https://${this.domain}/moderation`
     });
 
     const response = await this._paged_request_one(
