@@ -22,6 +22,7 @@ const Client = class extends Base {
 
     this._log_level = (this.options.log_level || 1);
     this._out = (this.options.output || new Out.Default());
+    this._expand_fields = (this.options.expand_fields || {});
 
     this._page_size_override = (
       this.options.page_size ?
@@ -367,6 +368,12 @@ const Client = class extends Base {
 
   _reparent_one (_target, _refhash, _key) {
 
+    /* Only reparent/expand if asked to */
+    if (!this._expand_fields[_key]) {
+      return this;
+    }
+
+    /* Find value to reparent */
     let value = _target[_key];
 
     if (!value) {

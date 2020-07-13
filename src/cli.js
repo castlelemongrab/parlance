@@ -31,7 +31,7 @@ const CLI = class extends Base {
       this._out.warn('Use --confirm-no-delay if you wish to disable delays');
     }
 
-    if (args.p != null) {
+    if (args.g == null && args.p != null) {
       this._out.warn('Use --confirm-page-size to truly change the page size');
     }
 
@@ -41,8 +41,8 @@ const CLI = class extends Base {
       this._out.fatal('You have been warned; refusing to continue as-is');
     }
 
-    if (args.g <= 0) {
-      this._out.fatal('Page size must be greater than zero');
+    if (!args.g) {
+      this._out.fatal('Page size must be an integer greater than zero');
     }
 
     if (args._[0] === 'init') {
@@ -63,7 +63,8 @@ const CLI = class extends Base {
       ignore_last: !!args.i,
       credentials_output: args.o,
       disable_rng_delay: !!args.x,
-      log_level: this._compute_log_level(args)
+      log_level: this._compute_log_level(args),
+      expand_fields: this._parse_expand_option(args.e)
     });
 
     /* Be human-friendly */
@@ -199,6 +200,53 @@ const CLI = class extends Base {
     }
 
     return 1;
+  }
+
+  _parse_expand_option (_array) {
+
+    let rv = {};
+
+    let valid = {
+      root: true, parent: true,
+      links: true, creator: true
+    };
+
+    if (!_array) {
+      return valid;
+    }
+
+    for (let i = 0, len = _array.length; i < len; ++i) {
+      switch (_array[i]) {
+        case 'none':
+          if (len > 1) {
+            this._out.fatal('Cannot reuse -e after specifying -e none');
+          }
+          rv = {};
+          break;
+        case 'all':
+          if (len > 1) {
+            this._out.fatal('Cannot reuse -e after specifying -e all');
+          }
+          rv = valid;
+          break;
+        case 'help':
+          let keys = Object.keys(Object.assign(valid, {
+            all: true, none: true, help: true
+          }));
+          this._out.fatal(`Valid -e field types: ${keys.join(', ')}`);
+          break;
+        default:
+          if (valid[_array[i]]) {
+            rv[_array[i]] = true;
+          } else {
+            this._out.warn(`Invalid option '-e ${_array[i]}' provided`);
+            this._out.fatal(`Use '-e help' to view a list of valid fields`);
+          }
+          break;
+      }
+    }
+
+    return rv;
   }
 };
 

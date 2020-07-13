@@ -50,7 +50,7 @@ const Arguments = class extends Base {
         'c', {
           type: 'string',
           alias: 'credentials',
-          describe: 'Credentials file',
+          describe: 'MST/JST tokens',
           default: this.default_credentials_path
         }
       )
@@ -126,6 +126,15 @@ const Arguments = class extends Base {
           default: undefined,
           conflicts: [ 'v', 'q' ],
           describe: 'Print absolutely no information to stderr'
+        }
+      )
+      .option(
+        'e', {
+          type: 'string',
+          alias: 'expand',
+          array: true,
+          default: 'all',
+          describe: 'Expand specific UUID types'
         }
       )
       .command(
