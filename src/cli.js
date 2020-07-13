@@ -41,7 +41,7 @@ const CLI = class extends Base {
       this._out.fatal('You have been warned; refusing to continue as-is');
     }
 
-    if (!args.g) {
+    if (args.g != null && parseInt(args.g, 10) > 0) {
       this._out.fatal('Page size must be an integer greater than zero');
     }
 
