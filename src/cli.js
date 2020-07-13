@@ -95,25 +95,25 @@ const CLI = class extends Base {
         break;
 
       case 'profile':
-        await client.profile(args.u, true);
+        await client.profile(args.u);
         break;
 
       case 'feed':
-        profile = await client.profile();
+        profile = await client.profile(null, true);
         await client.print_feed(profile);
         break;
 
       case 'post':
-        await client.post(args.i, true);
+        await client.post(args.i);
         break;
 
       case 'posts':
-        profile = await client.profile(args.u);
+        profile = await client.profile(args.u, true);
         await client.print_posts(profile);
         break;
 
       case 'echoes':
-        profile = await client.profile(args.u);
+        profile = await client.profile(args.u, true);
         await client.print_echoes(profile);
         break;
 
@@ -122,43 +122,43 @@ const CLI = class extends Base {
           await this._ensure_post_exists(client, args.i); /* Yikes */
           await client.print_post_comments(args.i);
         } else if (args.r) {
-          profile = await client.profile();
+          profile = await client.profile(null, true);
           await client.print_comment_replies(profile, args.r);
         } else {
-          profile = await client.profile(args.u);
+          profile = await client.profile(args.u, true);
           await client.print_user_comments(profile);
         }
         break;
 
       case 'following':
-        profile = await client.profile(args.u);
+        profile = await client.profile(args.u, true);
         await client.print_following(profile);
         break;
 
       case 'followers':
-        profile = await client.profile(args.u);
+        profile = await client.profile(args.u, true);
         await client.print_followers(profile);
         break;
 
       case 'tag':
-        profile = await client.profile(args.u);
+        profile = await client.profile(args.u, true);
         await client.print_tag({ tag: args.t });
         break;
 
       case 'votes':
-        profile = await client.profile(args.u);
+        profile = await client.profile(args.u, true);
         await client.print_votes(profile);
         break;
 
       case 'write':
-        profile = await client.profile();
-        await client.write_post(profile, args.t, true);
+        profile = await client.profile(null, true);
+        await client.write_post(profile, args.t);
         break;
 
       case 'delete':
-        profile = await client.profile(); /* For referrer */
+        profile = await client.profile(null, true);
         await this._ensure_post_exists(client, args.i); /* Yikes */
-        await client.delete_post(profile, args.i, true);
+        await client.delete_post(profile, args.i);
         break;
 
       case 'news':
@@ -179,7 +179,7 @@ const CLI = class extends Base {
   async _ensure_post_exists (_client, _id) {
 
     try {
-      await _client.post(_id);
+      await _client.post(_id, true);
     } catch (_e) {
       this._out.fatal(_e.message);
     }

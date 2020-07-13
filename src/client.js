@@ -191,6 +191,13 @@ const Client = class extends Base {
     return this;
   }
 
+  async _paged_generic_print (_profile, _fn_name, _key) {
+
+    return await this._paged_request(
+      _profile, this[_fn_name].bind(this), (_o) => (_o[_key] || [])
+    );
+  }
+
   async _paged_request (_profile, _request_callback, _reduce_callback,
                         _result_callback, _start_callback, _end_callback) {
 
@@ -545,145 +552,105 @@ const Client = class extends Base {
     return await response.json();
   }
 
-  /** Paged API print functions **/
+  /** Generic single-request functions **/
 
-  async _print_generic (_profile, _fn_name, _key) {
+  async _request_generic (_method, _url, _headers, _final_fn, _body) {
 
-    return await this._paged_request(
-      _profile, this[_fn_name].bind(this), (_o) => (_o[_key] || [])
+    let request = this._create_client(
+      this._create_extra_headers(_headers), _method
     );
+
+    if (this.log_level > 0) {
+      this._out.log_network(_url);
+    }
+
+    /* HTTPS request */
+    await this._ratelimit.wait();
+    const r = await request(_url, _body);
+    const json = await r.json();
+    await _final_fn(r, json);
+
+    return json;
+  }
+
+  async _request_print_generic (_array, _is_silent) {
+
+    if (!_is_silent) {
+      this._start_json_results();
+      this._print_json_results(_array);
+      this._end_json_results();
+    }
+
+    return Promise.resolve();
   }
 
   /** API endpoints **/
 
-  async profile (_username, _print_results) {
+  async profile (_username, _is_silent) {
 
-    let request = this._create_client(
-      this._create_extra_headers({ username: _username })
-    );
-
-    let url = `v1/profile`;
+    let h = {};
+    let url = 'v1/profile';
 
     if (_username) {
+      h.username = _username;
       url = `${url}?username=${encodeURIComponent(_username)}`;
     }
 
-    if (this.log_level > 0) {
-      this._out.log_network(url);
-    }
-
-    /* HTTPS request */
-    const r = await request(url);
-    const rv = await r.json();
-
-    /* Optionally print results */
-    if (_print_results) {
-      this._start_json_results();
-      this._print_json_results([ rv ], true);
-      this._end_json_results();
-    }
-
-    await this._ratelimit.wait();
-    return rv;
+    return await this._request_generic(
+      'GET', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ], _is_silent);
+      }
+    );
   }
 
-  async post (_id, _print_results) {
+  async post (_id, _is_silent) {
 
-    let request = this._create_client(
-      this._create_extra_headers({ id: _id })
-    );
-
+    let h = { id: _id };
     let url = `v1/post?id=${encodeURIComponent(_id)}`;
 
-    if (this.log_level > 0) {
-      this._out.log_network(url);
-    }
-
-    /* HTTPS request */
-    const r = await request(url);
-    let rv = await r.json();
-
-    /* Reparent */
-    rv.posts = [ rv.post ];
-    this._reparent_all(rv);
-
-    /* Optionally print results */
-    if (_print_results) {
-      this._start_json_results();
-      this._print_json_results(rv.posts, true);
-      this._end_json_results();
-    }
-
-    await this._ratelimit.wait();
-    return rv;
+    return await this._request_generic(
+      'GET', url, h, async (_r, _json) => {
+        /* Reparent */
+        _json.posts = [ _json.post ];
+        this._reparent_all(_json);
+        return await this._request_print_generic(_json.posts, _is_silent);
+      }
+    );
   }
 
-  async write_post (_profile, _text, _print_results) {
+  async write_post (_profile, _text) {
+
+    let url = 'v1/post';
 
     let body = {
       body: _text,
       parent: null, links: [], state: 4
     }
 
-    let request = this._create_client(
-      this._create_extra_headers(_profile), 'POST'
+    return await this._request_generic(
+      'POST', url, _profile, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
     );
-
-    let url = 'v1/post';
-
-    if (this.log_level > 0) {
-      this._out.log_network(url, body);
-    }
-
-    /* HTTPS request */
-    const r = await request(url, body);
-    const rv = await r.json();
-
-    /* Optionally print results */
-    if (_print_results) {
-      this._start_json_results();
-      this._print_json_results([ rv ], true);
-      this._end_json_results();
-    }
-
-    await this._ratelimit.wait();
-    return rv;
   }
 
-  async delete_post (_profile, _id, _print_results) {
+  async delete_post (_profile, _id) {
 
     let body = { id: _id };
-
-    let request = this._create_client(
-      this._create_extra_headers(_profile), 'POST'
-    );
-
     let url = 'v1/post/delete';
 
-    if (this.log_level > 0) {
-      this._out.log_network(url, body);
-    }
-
-    /* HTTPS request */
-    const r = await request(url, body);
-    const rv = await r.json();
-
-    /* Optionally print results */
-    if (_print_results) {
-      this._start_json_results();
-      this._print_json_results([ rv ], true);
-      this._end_json_results();
-    }
-
-    await this._ratelimit.wait();
-    return rv;
+    return await this._request_generic(
+      'POST', url, _profile, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
   }
 
   async print_feed (_profile) {
 
     this.page_size = 10;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_feed', 'posts'
     );
   }
@@ -692,7 +659,7 @@ const Client = class extends Base {
 
     this.page_size = 20;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_creator', 'posts'
     );
   }
@@ -701,7 +668,7 @@ const Client = class extends Base {
 
     this.page_size = 10;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_following', 'followees'
     );
   }
@@ -710,7 +677,7 @@ const Client = class extends Base {
 
     this.page_size = 10;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_followers', 'followers'
     );
   }
@@ -719,7 +686,7 @@ const Client = class extends Base {
 
     this.page_size = 10;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_user_comments', 'comments'
     );
   }
@@ -729,7 +696,7 @@ const Client = class extends Base {
     this.page_size = 10;
     this._temporarily_disable_page_size(); /* They do this */
 
-    return this._print_generic(
+    return this._paged_generic_print(
       { _id: _id }, '_request_post_comments', 'comments'
     );
   }
@@ -739,7 +706,7 @@ const Client = class extends Base {
     this.page_size = 10;
     this._temporarily_disable_page_size(); /* They do this */
 
-    return this._print_generic(
+    return this._paged_generic_print(
       { _id: _id, username: _profile.username },
         '_request_post_comments', 'comments'
     );
@@ -749,7 +716,7 @@ const Client = class extends Base {
 
     this.page_size = 10;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       { tag: _profile.tag }, /* Fix this */
         '_request_tag', 'posts'
     );
@@ -759,7 +726,7 @@ const Client = class extends Base {
 
     this.page_size = 10;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_votes', 'posts'
     );
   }
@@ -768,7 +735,7 @@ const Client = class extends Base {
 
     this.page_size = 20;
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_affiliate_news', 'links'
     );
   }
@@ -777,7 +744,7 @@ const Client = class extends Base {
 
     this._temporarily_disable_page_size(); /* They do this */
 
-    return this._print_generic(
+    return this._paged_generic_print(
       _profile, '_request_moderation', 'comments'
     );
   }
