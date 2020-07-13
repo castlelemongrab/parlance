@@ -106,6 +106,171 @@ const Client = class extends Base {
     return this;
   }
 
+  /** API endpoints **/
+
+  async profile (_username, _is_silent) {
+
+    let h = {};
+    let url = 'v1/profile';
+
+    if (_username) {
+      h.username = _username;
+      url = `${url}?username=${encodeURIComponent(_username)}`;
+    }
+
+    return await this._request_generic(
+      'GET', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ], _is_silent);
+      }
+    );
+  }
+
+  async post (_id, _is_silent) {
+
+    let h = { id: _id };
+    let url = `v1/post?id=${encodeURIComponent(_id)}`;
+
+    return await this._request_generic(
+      'GET', url, h, async (_r, _json) => {
+        /* Reparent */
+        _json.posts = [ _json.post ];
+        this._reparent_all(_json);
+        return await this._request_print_generic(_json.posts, _is_silent);
+      }
+    );
+  }
+
+  async write_post (_profile, _text) {
+
+    let url = 'v1/post';
+
+    let body = {
+      body: _text,
+      parent: null, links: [], state: 4
+    }
+
+    return await this._request_generic(
+      'POST', url, _profile, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  async delete_post (_profile, _id) {
+
+    let body = { id: _id };
+    let url = 'v1/post/delete';
+
+    return await this._request_generic(
+      'POST', url, _profile, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  async print_feed (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_feed', 'posts'
+    );
+  }
+
+  async print_posts (_profile) {
+
+    this.page_size = 20;
+
+    return this._paged_generic_print(
+      _profile, '_request_creator', 'posts'
+    );
+  }
+
+  async print_following (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_following', 'followees'
+    );
+  }
+
+  async print_followers (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_followers', 'followers'
+    );
+  }
+
+  async print_user_comments (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_user_comments', 'comments'
+    );
+  }
+
+  async print_post_comments (_id) {
+
+    this.page_size = 10;
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._paged_generic_print(
+      { _id: _id }, '_request_post_comments', 'comments'
+    );
+  }
+
+  async print_comment_replies (_profile, _id) {
+
+    this.page_size = 10;
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._paged_generic_print(
+      { _id: _id, username: _profile.username },
+        '_request_post_comments', 'comments'
+    );
+  }
+
+  async print_tag (_profile, _id) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      { tag: _profile.tag }, /* Fix this */
+        '_request_tag', 'posts'
+    );
+  }
+
+  async print_votes (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_votes', 'posts'
+    );
+  }
+
+  async print_affiliate_news (_profile) {
+
+    this.page_size = 20;
+
+    return this._paged_generic_print(
+      _profile, '_request_affiliate_news', 'links'
+    );
+  }
+
+  async print_moderation (_profile) {
+
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._paged_generic_print(
+      _profile, '_request_moderation', 'comments'
+    );
+  }
+
   /** HTTPS functions **/
 
   _create_client (_headers, _method) {
@@ -582,171 +747,6 @@ const Client = class extends Base {
     }
 
     return Promise.resolve();
-  }
-
-  /** API endpoints **/
-
-  async profile (_username, _is_silent) {
-
-    let h = {};
-    let url = 'v1/profile';
-
-    if (_username) {
-      h.username = _username;
-      url = `${url}?username=${encodeURIComponent(_username)}`;
-    }
-
-    return await this._request_generic(
-      'GET', url, h, async (_r, _json) => {
-        return await this._request_print_generic([ _json ], _is_silent);
-      }
-    );
-  }
-
-  async post (_id, _is_silent) {
-
-    let h = { id: _id };
-    let url = `v1/post?id=${encodeURIComponent(_id)}`;
-
-    return await this._request_generic(
-      'GET', url, h, async (_r, _json) => {
-        /* Reparent */
-        _json.posts = [ _json.post ];
-        this._reparent_all(_json);
-        return await this._request_print_generic(_json.posts, _is_silent);
-      }
-    );
-  }
-
-  async write_post (_profile, _text) {
-
-    let url = 'v1/post';
-
-    let body = {
-      body: _text,
-      parent: null, links: [], state: 4
-    }
-
-    return await this._request_generic(
-      'POST', url, _profile, async (_r, _json) => {
-        return await this._request_print_generic([ _json ]);
-      }, body
-    );
-  }
-
-  async delete_post (_profile, _id) {
-
-    let body = { id: _id };
-    let url = 'v1/post/delete';
-
-    return await this._request_generic(
-      'POST', url, _profile, async (_r, _json) => {
-        return await this._request_print_generic([ _json ]);
-      }, body
-    );
-  }
-
-  async print_feed (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_feed', 'posts'
-    );
-  }
-
-  async print_posts (_profile) {
-
-    this.page_size = 20;
-
-    return this._paged_generic_print(
-      _profile, '_request_creator', 'posts'
-    );
-  }
-
-  async print_following (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_following', 'followees'
-    );
-  }
-
-  async print_followers (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_followers', 'followers'
-    );
-  }
-
-  async print_user_comments (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_user_comments', 'comments'
-    );
-  }
-
-  async print_post_comments (_id) {
-
-    this.page_size = 10;
-    this._temporarily_disable_page_size(); /* They do this */
-
-    return this._paged_generic_print(
-      { _id: _id }, '_request_post_comments', 'comments'
-    );
-  }
-
-  async print_comment_replies (_profile, _id) {
-
-    this.page_size = 10;
-    this._temporarily_disable_page_size(); /* They do this */
-
-    return this._paged_generic_print(
-      { _id: _id, username: _profile.username },
-        '_request_post_comments', 'comments'
-    );
-  }
-
-  async print_tag (_profile, _id) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      { tag: _profile.tag }, /* Fix this */
-        '_request_tag', 'posts'
-    );
-  }
-
-  async print_votes (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_votes', 'posts'
-    );
-  }
-
-  async print_affiliate_news (_profile) {
-
-    this.page_size = 20;
-
-    return this._paged_generic_print(
-      _profile, '_request_affiliate_news', 'links'
-    );
-  }
-
-  async print_moderation (_profile) {
-
-    this._temporarily_disable_page_size(); /* They do this */
-
-    return this._paged_generic_print(
-      _profile, '_request_moderation', 'comments'
-    );
   }
 };
 
