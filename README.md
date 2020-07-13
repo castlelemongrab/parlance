@@ -49,13 +49,16 @@ Commands:
   parlance votes       Fetch all votes made by a user
   parlance write       Post a new message to your account
   parlance delete      Delete an existing message from your account
+  parlance follow      Follow a user
+  parlance unfollow    Unfollow an already-followed user
+  parlance mute        Mute a user
   parlance news        Fetch your own affiliate news feed
   parlance moderation  Fetch your list of comments for moderation
 
 Options:
   --version              Show version number                           [boolean]
   -h, --help             Show help                                     [boolean]
-  -c, --credentials      Credentials file [string] [default: "config/auth.json"]
+  -c, --credentials      MST/JST tokens   [string] [default: "config/auth.json"]
   -o, --credentials-out  Output file for client credentials             [string]
   -l, --ignore-last      Rely solely upon time comparisons             [boolean]
   -n, --no-delay         Disable the failsafe rate-limiter             [boolean]
@@ -63,6 +66,7 @@ Options:
   -v, --verbose          Print debug information to stderr             [boolean]
   -q, --quiet            Print less information to stderr              [boolean]
   -s, --silent           Print absolutely no information to stderr     [boolean]
+  -e, --expand           Expand specific UUID types     [array] [default: "all"]
 ```
 ```
 parlance init
