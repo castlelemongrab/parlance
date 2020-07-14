@@ -711,7 +711,8 @@ const Client = class extends Base {
       }
     );
 
-    return await response.json();
+    /* No refdata currently; might show up later */
+    return this._reparent_all(await response.json());
   }
 
   async _request_tag (_profile, _start_ts) {
@@ -722,8 +723,7 @@ const Client = class extends Base {
       }
     );
 
-    let rv = await response.json();
-    return this._reparent_all(rv);
+    return this._reparent_all(await response.json());
   }
 
   async _request_votes (_profile, _start_ts) {
@@ -732,8 +732,7 @@ const Client = class extends Base {
       'v1/post/creator/liked', _profile, _start_ts
     );
 
-    let rv = await response.json();
-    return this._reparent_all(rv);
+    return this._reparent_all(await response.json());
   }
 
   async _request_affiliate_news (_profile, _start_ts) {
@@ -787,7 +786,7 @@ const Client = class extends Base {
 
     if (!_is_silent) {
       this._start_json_results();
-      this._print_json_results(_array);
+      this._print_json_results(_array, true);
       this._end_json_results();
     }
 

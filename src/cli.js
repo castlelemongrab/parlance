@@ -150,6 +150,11 @@ const CLI = class extends Base {
         await client.print_votes(profile);
         break;
 
+      case 'news':
+        profile = await client.profile(null, true);
+        await client.print_affiliate_news(profile);
+        break;
+
       case 'write':
         profile = await client.profile(null, true);
         await client.write_post(profile, args.t);
