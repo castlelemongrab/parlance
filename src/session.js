@@ -2,8 +2,8 @@
 
 'use strict';
 
+const IO = require('./io');
 const Base = require('./base');
-const Out = require('./output');
 const Cookie = require('./cookie');
 const Credentials = require('./credentials');
 const jsdump = require('jsDump'); /* More human than human */
@@ -23,7 +23,7 @@ const Session = class extends Base {
     this._credentials = _credentials;
     this._log_level = (this.options.log_level || 1);
     this._output_file = this.options.credentials_output;
-    this._out = (this.options.output || new Out.Default());
+    this._io = (this.options.output || new IO.Default());
 
     return this;
   }
@@ -73,19 +73,19 @@ const Session = class extends Base {
 
     if (this._output_file) {
       try {
-        await this._out.write_file(
+        await this._io.write_file(
           this._output_file,
             jsdump.parse(this._credentials.toObject()) + "\n"
         );
-        this._out.log_level(
+        this._io.log_level(
           'credentials', 'Credentials file was updated', this.log_level, 0
         );
       } catch (_e) {
-        this._out.fatal('Failed to update credentials file');
+        this._io.fatal('Failed to update credentials file');
       }
     } else if (!_is_initial_update) {
-      this._out.warn('Please use the -o option to save credentials');
-      this._out.warn('Updated client credentials may have been lost');
+      this._io.warn('Please use the -o option to save credentials');
+      this._io.warn('Updated client credentials may have been lost');
     }
 
     return this;

@@ -2,8 +2,8 @@
 
 'use strict';
 
+const IO = require('./io');
 const Base = require('./base');
-const Out = require('./output');
 const Client = require('./client');
 const Arguments = require('./arguments');
 const Credentials = require('./credentials');
@@ -18,7 +18,7 @@ const CLI = class extends Base {
 
     super(_options);
 
-    this._out = new Out.Node();
+    this._io = new IO.Node();
     this._args = new Arguments();
   }
 
@@ -28,31 +28,31 @@ const CLI = class extends Base {
     let args = this._args.parse();
 
     if (args.n) {
-      this._out.warn('Use --confirm-no-delay if you wish to disable delays');
+      this._io.warn('Use --confirm-no-delay if you wish to disable delays');
     }
 
     if (args.g == null && args.p != null) {
-      this._out.warn('Use --confirm-page-size to truly change the page size');
+      this._io.warn('Use --confirm-page-size to truly change the page size');
     }
 
     if (args.n || args.p != null) {
-      this._out.warn('You are responsible for deciding if this is allowed');
-      this._out.warn('The authors bear no responsibility for your actions');
-      this._out.fatal('You have been warned; refusing to continue as-is');
+      this._io.warn('You are responsible for deciding if this is allowed');
+      this._io.warn('The authors bear no responsibility for your actions');
+      this._io.fatal('You have been warned; refusing to continue as-is');
     }
 
     if (args.g != null && parseInt(args.g, 10) > 0) {
-      this._out.fatal('Page size must be an integer greater than zero');
+      this._io.fatal('Page size must be an integer greater than zero');
     }
 
     if (args._[0] === 'init') {
       config.mst = args.mst; config.jst = args.jst;
     } else {
       try {
-        let json_config = await this._out.read_file(args.c);
+        let json_config = await this._io.read_file(args.c);
         config = JSON.parse(json_config);
       } catch (_e) {
-        this._out.fatal(`Unable to read authorization data from ${args.c}`, 2);
+        this._io.fatal(`Unable to read authorization data from ${args.c}`, 2);
       }
     }
 
@@ -73,7 +73,7 @@ const CLI = class extends Base {
     let jst = decodeURIComponent(config.jst);
 
     if (config.mst !== mst || config.jst !== jst) {
-      this._out.warn('Detected invalid URI-encoded credentials; correcting');
+      this._io.warn('Detected invalid URI-encoded credentials; correcting');
       client.credentials.mst = mst; client.credentials.jst = jst;
       client.session.write_credentials();
       wrote_credentials = true;
@@ -84,10 +84,10 @@ const CLI = class extends Base {
 
       case 'init':
         if (args.c !== this._args.default_credentials_path) {
-          this._out.fatal('Credentials are unnecessary; please use -o');
+          this._io.fatal('Credentials are unnecessary; please use -o');
         }
         if (!args.o) {
-          this._out.fatal('Refusing to continue without an output file');
+          this._io.fatal('Refusing to continue without an output file');
         }
         if (!wrote_credentials) {
           client.session.write_credentials();
@@ -184,7 +184,7 @@ const CLI = class extends Base {
 
       default:
         this._args.usage();
-        this._out.exit(1);
+        this._io.exit(1);
         break;
     }
   }
@@ -194,7 +194,7 @@ const CLI = class extends Base {
     try {
       await _client.post(_id, true);
     } catch (_e) {
-      this._out.fatal(_e.message);
+      this._io.fatal(_e.message);
     }
   }
 
@@ -232,13 +232,13 @@ const CLI = class extends Base {
       switch (_array[i]) {
         case 'none':
           if (len > 1) {
-            this._out.fatal('Cannot reuse -e after specifying -e none');
+            this._io.fatal('Cannot reuse -e after specifying -e none');
           }
           rv = {};
           break;
         case 'all':
           if (len > 1) {
-            this._out.fatal('Cannot reuse -e after specifying -e all');
+            this._io.fatal('Cannot reuse -e after specifying -e all');
           }
           rv = valid;
           break;
@@ -246,14 +246,14 @@ const CLI = class extends Base {
           let keys = Object.keys(Object.assign(valid, {
             all: true, none: true, help: true
           }));
-          this._out.fatal(`Valid -e field types: ${keys.join(', ')}`);
+          this._io.fatal(`Valid -e field types: ${keys.join(', ')}`);
           break;
         default:
           if (valid[_array[i]]) {
             rv[_array[i]] = true;
           } else {
-            this._out.warn(`Invalid option '-e ${_array[i]}' provided`);
-            this._out.fatal(`Use '-e help' to view a list of valid fields`);
+            this._io.warn(`Invalid option '-e ${_array[i]}' provided`);
+            this._io.fatal(`Use '-e help' to view a list of valid fields`);
           }
           break;
       }

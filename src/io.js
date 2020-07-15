@@ -6,9 +6,8 @@ const Oath = require('./oath');
 
 /**
   A simple console output base class.
-  @extends Base
 **/
-const Output = class {
+const IO = class {
 
   /**
     Write a string to standard output with no added linefeed.
@@ -101,12 +100,32 @@ const Output = class {
 
     return this.log(_type, _message);
   }
+
+  /**
+    Read a file from `_path` asynchronously, and return a Buffer.
+    @arg {_path} {string} - The potentially-relative path to read from
+  **/
+  async read_file (_path) {
+
+    throw new Error('Method is not yet implemented');
+  }
+
+  /**
+    Write `_data` to the file at `_path`, asynchronously.
+    @arg {_path} {string} - The potentially-relative path to write into
+    @arg {_data} {string|Buffer} - The data to write to `_path`
+  **/
+  async write_file (_path, _data) {
+
+    throw new Error('Method is not yet implemented');
+  }
 };
 
 /**
-  A Node.js specialization of the `Output` base class.
+  A Node.js specialization of the `IO` base class.
+  @extends IO
 **/
-const OutputNode = class extends Output {
+const NodeIO = class extends IO {
 
   constructor (_options) {
 
@@ -159,7 +178,10 @@ const OutputNode = class extends Output {
     this.exit(_status || 127);
   }
 
+
   /**
+    Read a file from `_path` asynchronously, and return a Buffer.
+    @arg {_path} {string} - The potentially-relative path to read from
   **/
   async read_file (_path) {
 
@@ -172,7 +194,11 @@ const OutputNode = class extends Output {
   }
 
   /**
+    Write `_data` to the file at `_path`, asynchronously.
+    @arg {_path} {string} - The potentially-relative path to write into
+    @arg {_data} {string|Buffer} - The data to write to `_path`
   **/
+
   async write_file (_path, _data) {
 
     let fn = (
@@ -187,11 +213,11 @@ const OutputNode = class extends Output {
 /**
   All available output classes.
 **/
-const Out = {
-  Default: OutputNode,
-  Base: Output, Node: OutputNode
+const Exports = {
+  Default: NodeIO,
+  Base: IO, Node: NodeIO
 };
 
 /* Export symbols */
-module.exports = Out;
+module.exports = Exports;
 

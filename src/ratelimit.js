@@ -2,8 +2,8 @@
 
 'use strict';
 
+const IO = require('./io');
 const Base = require('./base');
-const Out = require('./output');
 const ISO8601X = require('./iso8601x'); /* It's time */
 
 /**
@@ -22,7 +22,7 @@ const Ratelimit = class extends Base {
     this._rng_divisor = 48;
     this._headers = (_headers || {});
     this._log_level = (this.options.log_level || 1);
-    this._out = (this.options.output || new Out.Default());
+    this._io = (this.options.output || new IO.Default());
     this._disable_rng_delay = !!this.options.disable_rng_delay;
 
     return this.reset();
@@ -90,13 +90,13 @@ const Ratelimit = class extends Base {
       let deadline = ISO8601X.unparse(this.reset_time);
 
       if (this.log_level > 0) {
-        this._out.log('ratelimit', `Limit hit; waiting until ${deadline}`);
+        this._io.log('ratelimit', `Limit hit; waiting until ${deadline}`);
       }
 
       await this._wait_until(this.reset_time);
 
       if (this.log_level > 0) {
-        this._out.log('ratelimit', `Reset time reached; resuming operation`);
+        this._io.log('ratelimit', `Reset time reached; resuming operation`);
       }
     }
 
@@ -168,11 +168,11 @@ const Ratelimit = class extends Base {
       ts = 'currently invalid';
     }
 
-    this._out.log(
+    this._io.log(
       'ratelimit', `Current time is ${now}`
     );
 
-    this._out.log(
+    this._io.log(
       'ratelimit',
         `${this.remaining}/${this.limit} remaining; reset time is ${ts}`
     );

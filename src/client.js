@@ -2,9 +2,10 @@
 
 'use strict';
 
+const IO = require('./io');
 const Base = require('./base');
-const Out = require('./output');
 const Session = require('./session');
+const Emitter = require('./emitter');
 const Credentials = require('./session');
 const Ratelimit = require('./ratelimit');
 const bent = require('bent'); /* Get bent */
@@ -21,8 +22,9 @@ const Client = class extends Base {
     super(_options);
 
     this._log_level = (this.options.log_level || 1);
-    this._out = (this.options.output || new Out.Default());
+    this._io = (this.options.io || new IO.Default());
     this._expand_fields = (this.options.expand_fields || {});
+    this._emitter = (this.options.emitter || new Emitter.Default());
 
     this._page_size_override = (
       this.options.page_size ?
@@ -355,44 +357,6 @@ const Client = class extends Base {
     return rv;
   }
 
-  /** Result output functions **/
-
-  _start_json_results () {
-
-    this._out.stdout("[\n");
-    return true;
-  }
-
-  _end_json_results () {
-
-    this._out.stdout("\n]\n");
-    return true;
-  }
-
-  _print_json_results (_results, _is_first_page, _is_final_page) {
-
-    if (_results.length <= 0) {
-      return true;
-    }
-
-    for (let i = 0, len = _results.length; i < len; ++i) {
-
-      if (typeof _results[i] !== 'object') {
-        this._out.warn('Skipping invalid non-object result');
-      }
-
-      if (!(_is_first_page && i <= 0)) {
-        this._out.stdout(",");
-      }
-
-      this._out.stdout(
-        JSON.stringify(_results[i]).trim()
-      );
-    }
-
-    return true;
-  }
-
   /** Paging **/
 
   _temporarily_disable_page_size () {
@@ -408,8 +372,7 @@ const Client = class extends Base {
     );
   }
 
-  async _paged_request (_profile, _request_callback, _reduce_callback,
-                        _result_callback, _start_callback, _end_callback) {
+  async _paged_request (_profile, _request_callback, _reduce_callback) {
 
     /* To do:
         This paging logic could be pulled out into a buffered iterator. */
@@ -423,11 +386,7 @@ const Client = class extends Base {
       throw new Error('Request callback required');
     }
 
-    let end_cb = (_end_callback || this._end_json_results.bind(this));
-    let start_cb = (_start_callback || this._start_json_results.bind(this));
-    let result_cb = (_result_callback || this._print_json_results.bind(this));
-
-    if (!start_cb()) {
+    if (!this._emitter.start()) {
       throw new Error('Result dispatch: start failed');
     }
 
@@ -461,7 +420,7 @@ const Client = class extends Base {
 
           if (this.log_level > 1) {
             let tskp = ISO8601X.unparse_extended(next_key_parsed, true);
-            this._out.log('paging', `Next time-series key will be ${tskp}`);
+            this._io.log('paging', `Next time-series key will be ${tskp}`);
           }
         } catch (_e) {
           throw new Error('Invalid or corrupt time-series key');
@@ -480,7 +439,7 @@ const Client = class extends Base {
       }
 
       /* Dispatch result */
-      if (!result_cb(results, is_first_page, is_final_page)) {
+      if (!this._emitter.emit(results, is_first_page, is_final_page)) {
         throw new Error('Result dispatch failed');
       }
 
@@ -496,11 +455,11 @@ const Client = class extends Base {
     /* Some APIs don't use the limit parameter */
     this._page_size_temporarily_disabled = false;
 
-    if (!end_cb()) {
+    if (!this._emitter.finish()) {
       throw new Error('Result dispatch: completion failed');
     }
 
-    this._out.log_level(
+    this._io.log_level(
       'success', 'Finished fetching paged results', this.log_level, 0
     );
 
@@ -537,7 +496,7 @@ const Client = class extends Base {
     }
 
     if (this.log_level > 0) {
-      this._out.log_network(url);
+      this._io.log_network(url);
     }
 
     /* HTTPS request */
@@ -770,7 +729,7 @@ const Client = class extends Base {
     );
 
     if (this.log_level > 0) {
-      this._out.log_network(_url);
+      this._io.log_network(_url);
     }
 
     /* HTTPS request */
@@ -785,9 +744,9 @@ const Client = class extends Base {
   async _request_print_generic (_array, _is_silent) {
 
     if (!_is_silent) {
-      this._start_json_results();
-      this._print_json_results(_array, true);
-      this._end_json_results();
+      this._emitter.start();
+      this._emitter.emit(_array, true);
+      this._emitter.finish();
     }
 
     return Promise.resolve();
