@@ -36,5 +36,12 @@ describe('str', () => {
     Str.split_delimited('foo\\\\=bar\\')
       .should.deep.equal([ 'foo\\', 'bar' ]);
   });
+
+  it('parses tuples correctly', () => {
+    Str.split_delimited('foo=bar=baz\\')
+      .should.deep.equal([ 'foo', 'bar', 'baz' ]);
+    Str.split_delimited('foo \\ =bar \\ =\\ba\\z\\')
+      .should.deep.equal([ 'foo', 'bar', 'baz' ]);
+  });
 });
 
