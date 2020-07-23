@@ -1,6 +1,6 @@
 {
   "name": "@castlelemongrab/parlance",
-  "version": "1.44.2-pre1",
+  "version": "1.46.0-pre1",
   "license": "MIT",
   "description": "A Parler client library and research tool",
   "author": "Castle Lemongrab, a subsidiary of Baby Britain, Ltd.",
@@ -13,6 +13,14 @@
     "jsDump": "^1.1.0",
     "yargs": "^15.3.1"
   },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.0.1",
+    "chai-as-promised": "^7.1.1"
+  },
+  "optionalDependencies": {
+    "node-postgres": "^0.6.2"
+  },
   "bin": {
     "parlance": "bin/parlance"
   },
@@ -24,9 +32,8 @@
   "directories": {
     "test": "test"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo 'No tests currently available; see issue #10' && exit 1"
+    "test": "./node_modules/mocha/bin/mocha"
   },
   "keywords": [
     "osint",
