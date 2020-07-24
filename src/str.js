@@ -14,14 +14,14 @@ Str = {
      Javacript me: "use a regex". Actual programmer: "implement the DFA".
      Programmer me: "look, you can write C in any language you want".
   */
-  split_delimited: (_str, _delimiter, _escape) => {
+  split_delimited: (_str, _delimiter, _escape, _is_strict) => {
 
     let rv = [];
     let state = 0;
-    var i = 0, j = 0;
+    var i = 0, j = 0, len = 0;
 
-    let esc = (_escape!= null || '\\');
-    let delim = (_delimiter != null || '=');
+    let esc = (_escape == null ? '\\' : _escape);
+    let delim = (_delimiter == null ? '=' : _delimiter);
 
     for (j = 0, len = _str.length; j < len; ++j) {
       switch (state) {
@@ -42,8 +42,10 @@ Str = {
       }
     }
 
-    if (state === 0) {
+    if (state === 0 && len !== 0) {
       rv.push('');
+    } else if (state === 2 && _is_strict) {
+      throw new Error('Trailing delimiter found in strict mode');
     }
 
     for (var i = 0, len = rv.length; i < len; ++i) {

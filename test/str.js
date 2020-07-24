@@ -14,7 +14,22 @@ describe('str', () => {
   let should = chai.should();
   chai.use(promises);
 
-  it('parses simple pairs correctly', () => {
+  it('parses single items', () => {
+    Str.split_delimited('')
+      .should.deep.equal([ ]);
+    Str.split_delimited(' ')
+      .should.deep.equal([ '' ]);
+    Str.split_delimited(' foo ')
+      .should.deep.equal([ 'foo' ]);
+  });
+
+  it('parses simple pairs', () => {
+    Str.split_delimited('= ')
+      .should.deep.equal([ '', '' ]);
+    Str.split_delimited(' = ')
+      .should.deep.equal([ '', '' ]);
+    Str.split_delimited('=\\=\\\\')
+      .should.deep.equal([ '', '=\\' ]);
     Str.split_delimited('foo\\=bar')
       .should.deep.equal([ 'foo=bar' ]);
     Str.split_delimited('foo\\bar=')
@@ -37,11 +52,17 @@ describe('str', () => {
       .should.deep.equal([ 'foo\\', 'bar' ]);
   });
 
-  it('parses tuples correctly', () => {
+  it('parses tuples', () => {
     Str.split_delimited('foo=bar=baz\\')
       .should.deep.equal([ 'foo', 'bar', 'baz' ]);
     Str.split_delimited('foo \\ =bar \\ =\\ba\\z\\')
       .should.deep.equal([ 'foo', 'bar', 'baz' ]);
   });
+
+  it('obeys strict mode', () => {
+    (() => Str.split_delimited('\\', '=', '\\', true))
+      .should.throw(Error);
+  });
+
 });
 
