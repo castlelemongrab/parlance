@@ -21,6 +21,8 @@ describe('str', () => {
       .should.deep.equal([ '' ]);
     Str.split_delimited(' foo ')
       .should.deep.equal([ 'foo' ]);
+    Str.split_delimited(' \\f\\o\\o ')
+      .should.deep.equal([ 'foo' ]);
   });
 
   it('parses simple pairs', () => {
@@ -50,6 +52,8 @@ describe('str', () => {
       .should.deep.equal([ 'foo\\' ]);
     Str.split_delimited('foo\\\\=bar\\')
       .should.deep.equal([ 'foo\\', 'bar' ]);
+    Str.split_delimited('\\\\\\==\\=\\\\')
+      .should.deep.equal([ '\\=', '=\\' ]);
   });
 
   it('parses tuples', () => {
@@ -62,6 +66,10 @@ describe('str', () => {
   it('obeys strict mode', () => {
     (() => Str.split_delimited('\\', '=', '\\', true))
       .should.throw(Error);
+    (() => Str.split_delimited('\\\\\\', '=', '\\', true))
+      .should.throw(Error);
+    Str.split_delimited('  \\\\', '=', '\\', true)
+      .should.deep.equal([ '\\' ]);
   });
 
 });
