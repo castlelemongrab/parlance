@@ -11,7 +11,7 @@ const Oath = {
     A method for converting `(_err, _callback)` style
     asynchronous functions to functions that return promises
     and can be used with await. "Do not swear, merely say yea or nay".
-    @arg {Function} - A function whose final argument is Node-style callback.
+    @arg _fn {Function} - A function accepting a Node-style callback.
     @returns {Function}
   */
   promisify: (_fn) => {

@@ -9,6 +9,7 @@
     "url": "git+https://github.com/castlelemongrab/parlance.git"
   },
   "dependencies": {
+    "@castlelemongrab/strr": "^0.0.1",
     "bent": "^7.3.6",
     "jsDump": "^1.1.0",
     "yargs": "^15.3.1"
