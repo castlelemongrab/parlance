@@ -2,7 +2,7 @@
 
 'use strict';
 
-const IO = require('../io');
+const IO = require('@castlelemongrab/ioh');
 const Emitter = require('./base');
 
 /**
@@ -15,7 +15,7 @@ const JSONEmitter = class extends Emitter {
 
     super(_options);
 
-    this._io = (this.options.io || new IO.Default());
+    this._io = (this.options.io || new IO.Node());
     return this;
   }
 

@@ -2,9 +2,9 @@
 
 'use strict';
 
-const IO = require('./io');
 const Base = require('./base');
 const Cookie = require('./cookie');
+const IO = require('@castlelemongrab/ioh');
 const Credentials = require('./credentials');
 const jsdump = require('jsDump'); /* More human than human */
 
@@ -22,8 +22,8 @@ const Session = class extends Base {
     this._headers = _headers;
     this._credentials = _credentials;
     this._log_level = (this.options.log_level || 1);
+    this._io = (this.options.output || new IO.Base());
     this._output_file = this.options.credentials_output;
-    this._io = (this.options.output || new IO.Default());
 
     return this;
   }

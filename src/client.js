@@ -2,12 +2,12 @@
 
 'use strict';
 
-const IO = require('./io');
 const Base = require('./base');
 const Session = require('./session');
 const Emitter = require('./emitter');
 const Credentials = require('./session');
 const Ratelimit = require('./ratelimit');
+const IO = require('@castlelemongrab/ioh');
 const bent = require('bent'); /* Get bent */
 const ISO8601X = require('./iso8601x'); /* It's time */
 
@@ -21,8 +21,8 @@ const Client = class extends Base {
 
     super(_options);
 
+    this._io = (this.options.io || new IO.Base());
     this._log_level = (this.options.log_level || 1);
-    this._io = (this.options.io || new IO.Default());
     this._expand_fields = (this.options.expand_fields || {});
     this._emitter = (this.options.emitter || new Emitter.Default());
 
@@ -47,11 +47,13 @@ const Client = class extends Base {
     );
 
     this._session = new Session(this.credentials, null, {
+      io: this._io,
       log_level: this.log_level,
       credentials_output: this.options.credentials_output
     });
 
     this._ratelimit = new Ratelimit(null, {
+      io: this._io,
       log_level: this.log_level,
       disable_rng_delay: !!this.options.disable_rng_delay
     });
@@ -496,7 +498,7 @@ const Client = class extends Base {
     }
 
     if (this.log_level > 0) {
-      this._io.log_network(url);
+      this._io.log('network', `Fetching ${url}`);
     }
 
     /* HTTPS request */
@@ -729,7 +731,7 @@ const Client = class extends Base {
     );
 
     if (this.log_level > 0) {
-      this._io.log_network(_url);
+      this._io.log('network', `Fetching ${_url}`);
     }
 
     /* HTTPS request */

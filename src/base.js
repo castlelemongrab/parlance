@@ -9,8 +9,7 @@ const Base = class {
 
   constructor (_options) {
 
-    this._options = JSON.parse(JSON.stringify(_options || {}));
-
+    this._options = (_options || {});
     return this;
   }
 

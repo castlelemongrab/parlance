@@ -2,8 +2,8 @@
 
 'use strict';
 
-const IO = require('./io');
 const Base = require('./base');
+const IO = require('@castlelemongrab/ioh');
 const ISO8601X = require('./iso8601x'); /* It's time */
 
 /**
@@ -21,8 +21,8 @@ const Ratelimit = class extends Base {
 
     this._rng_divisor = 48;
     this._headers = (_headers || {});
+    this._io = (this.options.io || new IO.Base());
     this._log_level = (this.options.log_level || 1);
-    this._io = (this.options.output || new IO.Default());
     this._disable_rng_delay = !!this.options.disable_rng_delay;
 
     return this.reset();

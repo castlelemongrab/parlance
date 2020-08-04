@@ -2,10 +2,10 @@
 
 'use strict';
 
-const IO = require('./io');
 const Base = require('./base');
 const Client = require('./client');
 const Arguments = require('./arguments');
+const IO = require('@castlelemongrab/ioh');
 const Credentials = require('./credentials');
 
 /**
@@ -20,6 +20,7 @@ const CLI = class extends Base {
 
     this._io = new IO.Node();
     this._args = new Arguments();
+    return this;
   }
 
   async run () {
@@ -59,6 +60,7 @@ const CLI = class extends Base {
     let credentials = new Credentials(config.mst, config.jst);
 
     let client = new Client(credentials, {
+      io: this._io,
       page_size: args.g,
       ignore_last: !!args.i,
       credentials_output: args.o,
@@ -187,6 +189,8 @@ const CLI = class extends Base {
         this._io.exit(1);
         break;
     }
+
+    return true;
   }
 
   async _ensure_post_exists (_client, _id) {
