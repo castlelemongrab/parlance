@@ -2,7 +2,6 @@
 
 'use strict';
 
-const IO = require('@castlelemongrab/ioh');
 const Emitter = require('./base');
 
 /**
@@ -11,21 +10,13 @@ const Emitter = require('./base');
 **/
 const JSONEmitter = class extends Emitter {
 
-  constructor (_options) {
-
-    super(_options);
-
-    this._io = (this.options.io || new IO.Node());
-    return this;
-  }
-
   /**
     Begin emittng results.
   **/
   start (_options) {
 
     super.start(_options);
-    this._io.stdout("[\n");
+    this.io.stdout("[\n");
 
     return this;
   }
@@ -36,7 +27,7 @@ const JSONEmitter = class extends Emitter {
   finish (_options) {
 
     super.finish(_options);
-    this._io.stdout("\n]\n");
+    this.io.stdout("\n]\n");
 
     return this;
   }
@@ -50,15 +41,11 @@ const JSONEmitter = class extends Emitter {
 
     for (let i = 0, len = _results.length; i < len; ++i) {
 
-      if (typeof _results[i] !== 'object') {
-        this._io.warn('Skipping invalid non-object result');
-      }
-
       if (!(_is_first_page && i <= 0)) {
-        this._io.stdout(",");
+        this.io.stdout(",");
       }
 
-      this._io.stdout(
+      this.io.stdout(
         JSON.stringify(_results[i]).trim()
       );
     }

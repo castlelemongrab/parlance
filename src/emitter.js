@@ -4,10 +4,12 @@
 
 const BaseEmitter = require('./emitter/base');
 const JSONEmitter = require('./emitter/json');
+const JSONLEmitter = require('./emitter/jsonl');
 
 /* Export symbols */
 module.exports = {
-  Default: JSONEmitter,
-  Base: BaseEmitter, JSON: JSONEmitter
+  Base: BaseEmitter,
+  Default: JSONLEmitter,
+  JSON: JSONEmitter, JSONL: JSONLEmitter
 };
 

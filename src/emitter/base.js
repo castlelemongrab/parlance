@@ -2,6 +2,7 @@
 
 'use strict';
 
+const IO = require('@castlelemongrab/ioh');
 const Base = require('../base');
 
 /**
@@ -15,7 +16,16 @@ const BaseEmitter = class extends Base {
     super(_options);
 
     this._is_started = false;
+    this._io = (this.options.io || new IO.Node());
+
     return this;
+  }
+
+  /**
+   **/
+  get io () {
+
+    return this._io;
   }
 
   /**
