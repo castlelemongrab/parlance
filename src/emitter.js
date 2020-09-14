@@ -9,7 +9,7 @@ const JSONLEmitter = require('./emitter/jsonl');
 /* Export symbols */
 module.exports = {
   Base: BaseEmitter,
-  Default: JSONLEmitter,
+  Default: JSONEmitter,
   JSON: JSONEmitter, JSONL: JSONLEmitter
 };
 
