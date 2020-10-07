@@ -150,6 +150,22 @@ const Client = class extends Base {
     );
   }
 
+  async write_comment (_id, _text) {
+
+    let url = 'v1/comment';
+
+    let body = {
+      body: _text,
+      parent: _id, links: [], state: 4 
+    }
+
+    return await this._request_generic(
+      'POST', url, _id, async (_i, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
   async write_post (_profile, _text) {
 
     let url = 'v1/post';

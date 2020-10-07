@@ -174,6 +174,24 @@ const Arguments = class extends Base {
         }
       )
       .command(
+        'write_comment', 'Comment on a post based on the post identifier', {
+          i: {
+            type: 'string',
+            alias: 'identifier',
+            demandOption: true,
+            describe: 'The unique identifier of the post'
+          },
+          t: {
+            type: 'string',
+            alias: 'text',
+            demandOption: true,
+            describe: 'The textual content to post'
+          }
+
+        }
+      )
+
+      .command(
         'posts', 'Fetch all posts for a user', {
           u: {
             type: 'string',

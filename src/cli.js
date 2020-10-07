@@ -132,6 +132,11 @@ const CLI = class extends Base {
         }
         break;
 
+      case 'write_comment':
+          await this._ensure_post_exists(client, args.i);
+          await client.write_comment(args.i, args.t);
+        break;
+
       case 'following':
         profile = await client.profile(args.u, true);
         await client.print_following(profile);
