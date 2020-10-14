@@ -125,8 +125,8 @@ Options:
 Output Formats
 --------------
 
-Currently, Parlance supports both a pure JSON array-of-objects output target, as
-well as a JSONL target - one JSON object per line. These targets will be
+Currently, Parlance supports both a JSON array-of-objects output target, as
+well as a JSONL target (one JSON object per line). These targets will be
 expanded in the future. To use JSONL now, specify the `-f jsonl` option when you
 run Parlance. By default, a JSON array suitable for use with tools like `jq`
 will be emitted.
