@@ -4,6 +4,7 @@
 
 const Base = require('./base');
 const Client = require('./client');
+const Emitter = require('./emitter');
 const Arguments = require('./arguments');
 const IO = require('@castlelemongrab/ioh');
 const Credentials = require('./credentials');
@@ -21,6 +22,25 @@ const CLI = class extends Base {
     this._io = new IO.Node();
     this._args = new Arguments();
     return this;
+  }
+
+  /**
+    This is a far lesser evil than touching the filesystem,
+    or something similarly dynamic and scary; do not @ me.
+  **/
+  instansiate_emitter_from_option (_str) {
+
+    switch (_str) {
+      case 'json':
+      case 'default':
+        return new Emitter.JSON();
+      case 'jsonl':
+        return new Emitter.JSONL();
+      default:
+        break;
+    }
+
+    return false;
   }
 
   async run () {
@@ -46,6 +66,7 @@ const CLI = class extends Base {
       this._io.fatal('Page size must be an integer greater than zero');
     }
 
+    /* Initial configuration */
     if (args._[0] === 'init') {
       config.mst = args.mst; config.jst = args.jst;
     } else {
@@ -57,12 +78,20 @@ const CLI = class extends Base {
       }
     }
 
+    /* Output format */
+    if (args.f != null) {
+      if (!(this._emitter = this.instansiate_emitter_from_option(args.f))) {
+        this._io.fatal(`Invalid or unknown output engine '${args.f}'`);
+      }
+    }
+
     let credentials = new Credentials(config.mst, config.jst);
 
     let client = new Client(credentials, {
       io: this._io,
       page_size: args.g,
       ignore_last: !!args.i,
+      emitter: this._emitter,
       credentials_output: args.o,
       disable_rng_delay: !!args.x,
       log_level: this._compute_log_level(args),

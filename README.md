@@ -59,6 +59,7 @@ Options:
   -h, --help             Show help                                     [boolean]
   -c, --credentials      MST/JST tokens   [string] [default: "config/auth.json"]
   -o, --credentials-out  Output file for client credentials             [string]
+  -f, --format           Select output format/type    [string] [default: "json"]
   -l, --ignore-last      Rely solely upon time comparisons             [boolean]
   -n, --no-delay         Disable the failsafe rate-limiter             [boolean]
   -p, --page-limit       Set the page size limit                        [number]
@@ -121,6 +122,14 @@ Options:
 
 ```
 
+Output Formats
+--------------
+
+Currently, Parlance supports both a pure JSON array-of-objects output target, as
+well as a JSONL target - one JSON object per line. These targets will be
+expanded in the future. To use JSONL now, specify the `-f jsonl` option when you
+run Parlance. By default, a JSON array suitable for use with tools like `jq`
+will be emitted.
 
 Legal
 -----

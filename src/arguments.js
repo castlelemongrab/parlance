@@ -62,6 +62,14 @@ const Arguments = class extends Base {
         }
       )
       .option(
+        'f', {
+          type: 'string',
+          alias: 'format',
+          default: 'json',
+          describe: 'Select output format/type'
+        }
+      )
+      .option(
         'l', {
           type: 'boolean',
           alias: 'ignore-last',
