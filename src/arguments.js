@@ -62,14 +62,6 @@ const Arguments = class extends Base {
         }
       )
       .option(
-        'f', {
-          type: 'string',
-          alias: 'format',
-          default: 'json',
-          describe: 'Select output format/type'
-        }
-      )
-      .option(
         'l', {
           type: 'boolean',
           alias: 'ignore-last',
@@ -143,6 +135,20 @@ const Arguments = class extends Base {
           array: true,
           default: 'all',
           describe: 'Expand specific UUID types'
+        }
+      )
+      .option(
+        'f', {
+          type: 'string',
+          alias: 'format',
+          default: 'json',
+          describe: 'Select output format/type'
+        }
+      )
+      .option(
+        'format-options', {
+          type: 'string',
+          describe: 'Provide format/type-specific options'
         }
       )
       .command(
