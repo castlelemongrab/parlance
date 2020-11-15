@@ -22,7 +22,7 @@ const Session = class extends Base {
     this._headers = _headers;
     this._credentials = _credentials;
     this._log_level = (this.options.log_level || 1);
-    this._io = (this.options.output || new IO.Base());
+    this._io = (this.options.output || new IO.Node());
     this._output_file = this.options.credentials_output;
 
     return this;
