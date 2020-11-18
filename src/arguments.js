@@ -39,11 +39,25 @@ const Arguments = class extends Base {
   _setup () {
 
     this._yargs.demandCommand(1)
+      .parserConfiguration({
+        "boolean-negation": false
+      })
       .option(
-        'h', {
+        'help', {
           type: 'boolean',
-          alias: 'help',
           describe: 'Show help'
+        }
+      )
+      .option(
+        'show-hidden', {
+          type: 'boolean',
+          describe: 'Show hidden options'
+        }
+      )
+      .option(
+        'format-options', {
+          type: 'string',
+          describe: 'Provide format/type-specific options'
         }
       )
       .option(
@@ -65,7 +79,7 @@ const Arguments = class extends Base {
         'l', {
           type: 'boolean',
           alias: 'ignore-last',
-          default: undefined,
+          default: false,
           describe: 'Rely solely upon time comparisons'
         }
       )
@@ -73,7 +87,7 @@ const Arguments = class extends Base {
         'n', {
           type: 'boolean',
           alias: 'no-delay',
-          default: undefined,
+          default: false,
           describe: 'Disable the failsafe rate-limiter'
         }
       )
@@ -81,7 +95,7 @@ const Arguments = class extends Base {
         'x', {
           hidden: true,
           type: 'boolean',
-          default: undefined,
+          default: false,
           alias: 'confirm-no-delay',
           describe: 'Actually disable the failsafe rate-limiter'
         }
@@ -143,12 +157,6 @@ const Arguments = class extends Base {
           alias: 'format',
           default: 'json',
           describe: 'Select output format/type'
-        }
-      )
-      .option(
-        'format-options', {
-          type: 'string',
-          describe: 'Provide format/type-specific options'
         }
       )
       .command(
