@@ -101,6 +101,7 @@ const Ratelimit = class extends Base {
     }
 
     if (!this._disable_rng_delay) {
+      this._io.log('ratelimit', `Waiting for randomized delay to expire`);
       await this._wait_rng();
     }
 
