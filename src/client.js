@@ -408,8 +408,8 @@ const Client = class extends Base {
           throw new Error("retry attemps exceeded");
         }
         consecutive_errors += 1;
-        this._io.log('warning', `An error occurred while performing network request (attempt ${consecutive_errors}/3): ${err}`);
-        this._io.log('warning', `Trying again...`);
+        this._io.warn(`An error occurred while performing network request (attempt ${consecutive_errors}/3): ${err}`);
+        this._io.warn(`Trying again...`);
         continue;
       }
       consecutive_errors = 0;
