@@ -23,6 +23,7 @@ const Client = class extends Base {
 
     this._io = (this.options.io || new IO.Base());
     this._log_level = (this.options.log_level || 1);
+    this._retry_limit = (this.options.retry_limit || 3);
     this._expand_fields = (this.options.expand_fields || {});
     this._emitter = (this.options.emitter || new Emitter.Default());
 
@@ -381,6 +382,7 @@ const Client = class extends Base {
 
     let record = {};
     let results = [];
+    let error_count = 0;
     let is_first_page = true;
     let prev_key = null, next_key = null;
 
@@ -392,27 +394,34 @@ const Client = class extends Base {
       throw new Error('Result dispatch: start failed');
     }
 
-    let consecutive_errors = 0;
-
     for (;;) {
 
-      /* Fail closed */
+      let record = null;
       let key_comparison = 0;
 
-      /* Perform actual network request */
-      let record = null;
       try {
+
+        /* Perform actual network request */
         record = await _request_callback(_profile, next_key);
-      } catch(err) {
-        if (consecutive_errors > 3) {
-          throw new Error("retry attemps exceeded");
+
+      } catch (_e) {
+
+        /* Handle request errors */
+        if (error_count >= this._retry_limit) {
+          throw new Error('Retry limit exceeded; refusing to continue');
         }
-        consecutive_errors += 1;
-        this._io.warn(`An error occurred while performing network request (attempt ${consecutive_errors}/3): ${err}`);
-        this._io.warn(`Trying again...`);
+
+        ++error_count;
+        this._io.log('network', `${_e}`); /* Needs a better message */
+        this._io.log('network', `Retrying request (attempt ${error_count})`);
+
+        /* Ratelimit retries as well */
+        await this._ratelimit.wait();
         continue;
       }
-      consecutive_errors = 0;
+
+      /* We have a record */
+      error_count = 0;
       next_key = record.next;
 
       /* Extract result array */
