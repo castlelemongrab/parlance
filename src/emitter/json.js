@@ -42,7 +42,7 @@ const JSONEmitter = class extends Emitter {
     for (let i = 0, len = _results.length; i < len; ++i) {
 
       if (!(_is_first_page && i <= 0)) {
-        this.io.stdout(",");
+        this.io.stdout(",\n");
       }
 
       this.io.stdout(
