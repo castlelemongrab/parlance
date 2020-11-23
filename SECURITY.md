@@ -10,5 +10,5 @@ The current version support matrix appears below.
 
 ## Reporting a Vulnerability
 
-To report a security vulnerability, e-maiil security at babybritain dot ltd.
+To report a security vulnerability, e-mail security at babybritain dot ltd.
 Any and all reports will be responded to promptly.

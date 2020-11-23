@@ -392,13 +392,27 @@ const Client = class extends Base {
       throw new Error('Result dispatch: start failed');
     }
 
+    let consecutive_errors = 0;
+
     for (;;) {
 
       /* Fail closed */
       let key_comparison = 0;
 
       /* Perform actual network request */
-      let record = await _request_callback(_profile, next_key);
+      let record = null;
+      try {
+        record = await _request_callback(_profile, next_key);
+      } catch(err) {
+        if (consecutive_errors > 3) {
+          throw new Error("retry attemps exceeded");
+        }
+        consecutive_errors += 1;
+        this._io.warn(`An error occurred while performing network request (attempt ${consecutive_errors}/3): ${err}`);
+        this._io.warn(`Trying again...`);
+        continue;
+      }
+      consecutive_errors = 0;
       next_key = record.next;
 
       /* Extract result array */
