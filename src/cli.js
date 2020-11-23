@@ -48,22 +48,31 @@ const CLI = class extends Base {
     let profile = {}, config = {};
     let args = this._args.parse();
 
+    let page_size = null;
+    let guarded_option_used = false;
+
     if (args.n) {
-      this._io.warn('Use --confirm-no-delay if you wish to disable delays');
+      this._io.warn('Use --confirm-no-delay to truly disable delays');
+      guarded_option_used = true;
     }
 
-    if (args.g == null && args.p != null) {
+    if (args.p != null) {
       this._io.warn('Use --confirm-page-size to truly change the page size');
+      guarded_option_used = true;
     }
 
-    if (args.n || args.p != null) {
+    if (guarded_option_used) {
       this._io.warn('You are responsible for deciding if this is allowed');
       this._io.warn('The authors bear no responsibility for your actions');
       this._io.fatal('You have been warned; refusing to continue as-is');
     }
 
-    if (args.g != null && parseInt(args.g, 10) > 0) {
-      this._io.fatal('Page size must be an integer greater than zero');
+    if (args.g != null) {
+      /* Yargs should be type-checking this */
+      page_size = parseInt(args.g, 10);
+      if (isNaN(page_size) || page_size <= 0) {
+        this._io.fatal('Page size must be an integer greater than zero');
+      }
     }
 
     /* Initial configuration */
@@ -89,7 +98,7 @@ const CLI = class extends Base {
 
     let client = new Client(credentials, {
       io: this._io,
-      page_size: args.g,
+      page_size: page_size,
       ignore_last: !!args.i,
       emitter: this._emitter,
       credentials_output: args.o,
@@ -98,7 +107,7 @@ const CLI = class extends Base {
       expand_fields: this._parse_expand_option(args.e)
     });
 
-    /* Be human-friendly */
+    /* Try to be human-friendly */
     let wrote_credentials = false;
     let mst = decodeURIComponent(config.mst);
     let jst = decodeURIComponent(config.jst);

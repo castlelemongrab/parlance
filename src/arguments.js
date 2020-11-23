@@ -79,7 +79,6 @@ const Arguments = class extends Base {
         'l', {
           type: 'boolean',
           alias: 'ignore-last',
-          default: false,
           describe: 'Rely solely upon time comparisons'
         }
       )
@@ -87,7 +86,6 @@ const Arguments = class extends Base {
         'n', {
           type: 'boolean',
           alias: 'no-delay',
-          default: false,
           describe: 'Disable the failsafe rate-limiter'
         }
       )
@@ -95,7 +93,6 @@ const Arguments = class extends Base {
         'x', {
           hidden: true,
           type: 'boolean',
-          default: false,
           alias: 'confirm-no-delay',
           describe: 'Actually disable the failsafe rate-limiter'
         }
@@ -103,8 +100,8 @@ const Arguments = class extends Base {
       .option(
         'p', {
           type: 'number',
-          alias: 'page-limit',
-          describe: 'Set the page size limit'
+          alias: 'page-size',
+          describe: 'Request a specific page size'
         }
       )
       .option(
@@ -112,14 +109,13 @@ const Arguments = class extends Base {
           hidden: true,
           type: 'number',
           alias: 'confirm-page-size',
-          describe: 'Actually set the page size limit'
+          describe: 'Actually request a specific page size'
         }
       )
       .option(
         'v', {
           type: 'boolean',
           alias: 'verbose',
-          default: undefined,
           conflicts: [ 'q', 's' ],
           describe: 'Print debug information to stderr'
         }
@@ -128,7 +124,6 @@ const Arguments = class extends Base {
         'q', {
           type: 'boolean',
           alias: 'quiet',
-          default: undefined,
           conflicts: [ 'v', 's' ],
           describe: 'Print less information to stderr'
         }
@@ -137,7 +132,6 @@ const Arguments = class extends Base {
         's', {
           type: 'boolean',
           alias: 'silent',
-          default: undefined,
           conflicts: [ 'v', 'q' ],
           describe: 'Print absolutely no information to stderr'
         }

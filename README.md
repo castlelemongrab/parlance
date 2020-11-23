@@ -55,18 +55,20 @@ Commands:
   parlance moderation  Fetch your list of comments for moderation
 
 Options:
+  --help                 Show help                                     [boolean]
   --version              Show version number                           [boolean]
-  -h, --help             Show help                                     [boolean]
+  --show-hidden          Show hidden options                           [boolean]
+  --format-options       Provide format/type-specific options           [string]
   -c, --credentials      MST/JST tokens   [string] [default: "config/auth.json"]
   -o, --credentials-out  Output file for client credentials             [string]
-  -f, --format           Select output format/type    [string] [default: "json"]
   -l, --ignore-last      Rely solely upon time comparisons             [boolean]
   -n, --no-delay         Disable the failsafe rate-limiter             [boolean]
-  -p, --page-limit       Set the page size limit                        [number]
+  -p, --page-size        Request a specific page size                   [number]
   -v, --verbose          Print debug information to stderr             [boolean]
   -q, --quiet            Print less information to stderr              [boolean]
   -s, --silent           Print absolutely no information to stderr     [boolean]
   -e, --expand           Expand specific UUID types     [array] [default: "all"]
+  -f, --format           Select output format/type    [string] [default: "json"]
 ```
 ```
 parlance init
