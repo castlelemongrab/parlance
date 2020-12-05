@@ -76,6 +76,13 @@ const Arguments = class extends Base {
         }
       )
       .option(
+        'k', {
+          type: 'string',
+          alias: 'start-key',
+          describe: 'Specify a time-series start/resume key'
+        }
+      )
+      .option(
         'l', {
           type: 'boolean',
           alias: 'ignore-last',

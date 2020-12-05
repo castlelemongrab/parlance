@@ -23,7 +23,7 @@ const Client = class extends Base {
 
     this._io = (this.options.io || new IO.Base());
     this._log_level = (this.options.log_level || 1);
-    this._retry_limit = (this.options.retry_limit || 3);
+    this._retry_limit = (this.options.retry_limit || 10);
     this._expand_fields = (this.options.expand_fields || {});
     this._emitter = (this.options.emitter || new Emitter.Default());
 
@@ -60,6 +60,16 @@ const Client = class extends Base {
     });
 
     return this;
+  }
+
+  get start_key () {
+
+    return this._start_key;
+  }
+
+  set start_key (_start_key) {
+
+    this._start_key = (_start_key || null);
   }
 
   get domain () {
@@ -384,7 +394,8 @@ const Client = class extends Base {
     let results = [];
     let error_count = 0;
     let is_first_page = true;
-    let prev_key = null, next_key = null;
+    let prev_key = null, next_key = this.start_key;
+    let reduce_callback = (_reduce_callback || ((_x) => _x));
 
     if (!_request_callback) {
       throw new Error('Request callback required');
@@ -394,6 +405,20 @@ const Client = class extends Base {
       throw new Error('Result dispatch: start failed');
     }
 
+    /* Start at a specific time-series key */
+    if (next_key) {
+      try {
+        let next_key_parsed = ISO8601X.parse_extended(next_key);
+        if (this.log_level > 1) {
+          let tskp = ISO8601X.unparse_extended(next_key_parsed, true);
+          this._io.log('paging', `First time-series key will be ${tskp}`);
+        }
+      } catch (_e) {
+        throw new Error('Invalid or corrupt starting time-series key');
+      }
+    }
+
+    /* Main request loop */
     for (;;) {
 
       let record = null;
@@ -425,7 +450,7 @@ const Client = class extends Base {
       next_key = record.next;
 
       /* Extract result array */
-      results = _reduce_callback(record);
+      results = reduce_callback(record);
 
       /* Yikes and a half:
           Occasionally, the API will return differently-formatted
@@ -488,6 +513,7 @@ const Client = class extends Base {
       'success', 'Finished fetching paged results', this.log_level, 0
     );
 
+    this.start_key = null;
     return true;
   }
 

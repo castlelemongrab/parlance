@@ -107,6 +107,11 @@ const CLI = class extends Base {
       expand_fields: this._parse_expand_option(args.e)
     });
 
+    /* Support arbitrary start keys */
+    if (args.k) {
+      client.start_key = decodeURIComponent(args.k).replace('@', '_');
+    }
+
     /* Try to be human-friendly */
     let wrote_credentials = false;
     let mst = decodeURIComponent(config.mst);
