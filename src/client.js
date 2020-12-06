@@ -17,13 +17,14 @@ const ISO8601X = require('./iso8601x'); /* It's time */
 **/
 const Client = class extends Base {
 
+  /**
+  **/
   constructor (_credentials, _options) {
 
     super(_options);
 
-    this._io = (this.options.io || new IO.Base());
-    this._log_level = (this.options.log_level || 1);
-    this._retry_limit = (this.options.retry_limit || 10);
+    this._io = (this.options.io || new IO.Node());
+    this._retry_limit = (this.options.retry_limit || 5);
     this._expand_fields = (this.options.expand_fields || {});
     this._emitter = (this.options.emitter || new Emitter.Default());
 
@@ -49,69 +50,77 @@ const Client = class extends Base {
 
     this._session = new Session(this.credentials, null, {
       io: this._io,
-      log_level: this.log_level,
       credentials_output: this.options.credentials_output
     });
 
     this._ratelimit = new Ratelimit(null, {
       io: this._io,
-      log_level: this.log_level,
       disable_rng_delay: !!this.options.disable_rng_delay
     });
 
     return this;
   }
 
+  /** Accessor functions **/
+
+  /**
+  **/
   get start_key () {
 
     return this._start_key;
   }
 
+  /**
+  **/
   set start_key (_start_key) {
 
     this._start_key = (_start_key || null);
   }
 
+  /**
+  **/
   get domain () {
 
     return this._domain;
   }
 
+  /**
+  **/
   get session () {
 
     return this._session;
   }
 
+  /**
+  **/
   get credentials () {
 
     return this._credentials;
   }
 
-  get log_level () {
-
-    return this._log_level;
-  }
-
+  /**
+  **/
   get user_agent () {
 
     return this._ua;
   }
 
+  /**
+  **/
   get base_url () {
 
     return this._url;
   }
 
+  /**
+  **/
   get page_size () {
 
     return (this._page_size_override || this._page_size);
   }
 
-  get log_level () {
-
-    return this._log_level;
-  }
-
+  /**
+  **/
   set page_size (_page_size) {
 
     if (this._page_size_override) {
@@ -127,212 +136,10 @@ const Client = class extends Base {
     return this;
   }
 
-  /** API endpoints **/
-
-  async profile (_username, _is_silent) {
-
-    let h = {};
-    let url = 'v1/profile';
-
-    if (_username) {
-      h.username = _username;
-      url = `${url}?username=${encodeURIComponent(_username)}`;
-    }
-
-    return await this._request_generic(
-      'GET', url, h, async (_r, _json) => {
-        return await this._request_print_generic([ _json ], _is_silent);
-      }
-    );
-  }
-
-  async post (_id, _is_silent) {
-
-    let h = { id: _id };
-    let url = `v1/post?id=${encodeURIComponent(_id)}`;
-
-    return await this._request_generic(
-      'GET', url, h, async (_r, _json) => {
-        /* Reparent */
-        _json.posts = [ _json.post ];
-        this._reparent_all(_json);
-        return await this._request_print_generic(_json.posts, _is_silent);
-      }
-    );
-  }
-
-  async write_post (_profile, _text) {
-
-    let url = 'v1/post';
-
-    let body = {
-      body: _text,
-      parent: null, links: [], state: 4
-    }
-
-    return await this._request_generic(
-      'POST', url, _profile, async (_r, _json) => {
-        return await this._request_print_generic([ _json ]);
-      }, body
-    );
-  }
-
-  async delete_post (_profile, _id) {
-
-    let body = { id: _id };
-    let url = 'v1/post/delete';
-
-    return await this._request_generic(
-      'POST', url, _profile, async (_r, _json) => {
-        return await this._request_print_generic([ _json ]);
-      }, body
-    );
-  }
-
-  async follow (_username) {
-
-    let body = { username: _username }; /* Yikes */
-    let h = { referrer: `https://${this.domain}/feed` };
-    let url = `v1/follow?username=${encodeURIComponent(_username)}`;
-
-    return await this._request_generic(
-      'POST', url, h, async (_r, _json) => {
-        return await this._request_print_generic([ _json ]);
-      }, body
-    );
-  }
-
-  async unfollow (_username) {
-
-    let body = { username: _username }; /* Yikes */
-    let h = { referrer: `https://${this.domain}/feed` };
-    let url = `v1/follow/delete?username=${encodeURIComponent(_username)}`;
-
-    return await this._request_generic(
-      'POST', url, h, async (_r, _json) => {
-        return await this._request_print_generic([ _json ]);
-      }, body
-    );
-  }
-
-  async mute (_username) {
-
-    let body = { username: _username }; /* Yikes */
-    let h = { referrer: `https://${this.domain}/feed` };
-    let url = `v1/user/mute?username=${encodeURIComponent(_username)}`;
-
-    return await this._request_generic(
-      'POST', url, h, async (_r, _json) => {
-        return await this._request_print_generic([ _json ]);
-      }, body
-    );
-  }
-
-  async print_feed (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_feed', 'posts'
-    );
-  }
-
-  async print_posts (_profile) {
-
-    this.page_size = 20;
-
-    return this._paged_generic_print(
-      _profile, '_request_creator', 'posts'
-    );
-  }
-
-  async print_following (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_following', 'followees'
-    );
-  }
-
-  async print_followers (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_followers', 'followers'
-    );
-  }
-
-  async print_user_comments (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_user_comments', 'comments'
-    );
-  }
-
-  async print_post_comments (_id) {
-
-    this.page_size = 10;
-    this._temporarily_disable_page_size(); /* They do this */
-
-    return this._paged_generic_print(
-      { _id: _id }, '_request_post_comments', 'comments'
-    );
-  }
-
-  async print_comment_replies (_profile, _id) {
-
-    this.page_size = 10;
-    this._temporarily_disable_page_size(); /* They do this */
-
-    return this._paged_generic_print(
-      { _id: _id, username: _profile.username },
-        '_request_post_comments', 'comments'
-    );
-  }
-
-  async print_tag (_profile, _id) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      { tag: _profile.tag }, /* Fix this */
-        '_request_tag', 'posts'
-    );
-  }
-
-  async print_votes (_profile) {
-
-    this.page_size = 10;
-
-    return this._paged_generic_print(
-      _profile, '_request_votes', 'posts'
-    );
-  }
-
-  async print_affiliate_news (_profile) {
-
-    this.page_size = 20;
-
-    return this._paged_generic_print(
-      _profile, '_request_affiliate_news', 'links'
-    );
-  }
-
-  async print_moderation (_profile) {
-
-    this._temporarily_disable_page_size(); /* They do this */
-
-    return this._paged_generic_print(
-      _profile, '_request_moderation', 'comments'
-    );
-  }
-
   /** HTTPS functions **/
 
+  /**
+  **/
   _create_client (_headers, _method) {
 
     let headers = (_headers || {});
@@ -350,6 +157,8 @@ const Client = class extends Base {
     return bent(this.base_url, method, null, 200, headers);
   }
 
+  /**
+  **/
   _create_extra_headers (_args) {
 
     let args = (_args || {});
@@ -372,12 +181,16 @@ const Client = class extends Base {
 
   /** Paging **/
 
+  /**
+  **/
   _temporarily_disable_page_size () {
 
     this._page_size_temporarily_disabled = true;
     return this;
   }
 
+  /**
+  **/
   async _paged_generic_print (_profile, _fn_name, _key) {
 
     return await this._paged_request(
@@ -385,16 +198,15 @@ const Client = class extends Base {
     );
   }
 
+  /**
+  **/
   async _paged_request (_profile, _request_callback, _reduce_callback) {
-
-    /* To do:
-        This paging logic could be pulled out into a buffered iterator. */
 
     let record = {};
     let results = [];
     let error_count = 0;
-    let is_first_page = true;
     let prev_key = null, next_key = this.start_key;
+    let is_first_page = true, is_final_page = false;
     let reduce_callback = (_reduce_callback || ((_x) => _x));
 
     if (!_request_callback) {
@@ -405,98 +217,80 @@ const Client = class extends Base {
       throw new Error('Result dispatch: start failed');
     }
 
-    /* Start at a specific time-series key */
-    if (next_key) {
-      try {
-        let next_key_parsed = ISO8601X.parse_extended(next_key);
-        if (this.log_level > 1) {
-          let tskp = ISO8601X.unparse_extended(next_key_parsed, true);
-          this._io.log('paging', `First time-series key will be ${tskp}`);
-        }
-      } catch (_e) {
-        throw new Error('Invalid or corrupt starting time-series key');
-      }
-    }
+    /* Main request loop:
+        This repearedly requests and emits paged time-series data. */
 
-    /* Main request loop */
     for (;;) {
 
       let record = null;
-      let key_comparison = 0;
 
+      /* Issue network requests */
       try {
 
-        /* Perform actual network request */
+        /* Actual HTTP request happens here */
         record = await _request_callback(_profile, next_key);
 
       } catch (_e) {
 
         /* Handle request errors */
-        if (error_count >= this._retry_limit) {
+        if (error_count++ >= this._retry_limit) {
           throw new Error('Retry limit exceeded; refusing to continue');
         }
 
-        ++error_count;
-        this._io.log('network', `${_e}`); /* Needs a better message */
+        this._io.log('network', _e.message);
         this._io.log('network', `Retrying request (attempt ${error_count})`);
 
-        /* Ratelimit retries as well */
-        await this._ratelimit.wait();
+        /* Force ratelimiting delay */
+        await this._ratelimit.wait(true);
         continue;
       }
 
-      /* We have a record */
-      error_count = 0;
-      next_key = record.next;
-
-      /* Extract result array */
-      results = reduce_callback(record);
-
-      /* Yikes and a half:
-          Occasionally, the API will return differently-formatted
-          non-string timestamps of zero. This is, of course, nuts. */
-
-      let is_next_key_valid = (next_key.toString() != 0);
-
-      /* Enforce monotonicity */
-      if (!is_first_page && is_next_key_valid) {
-        try {
-          let prev_key_parsed = ISO8601X.parse_extended(prev_key);
-          let next_key_parsed = ISO8601X.parse_extended(next_key);
-
-          key_comparison = ISO8601X.compare_extended(
-            prev_key_parsed, next_key_parsed
-          );
-
-          if (this.log_level > 1) {
-            let tskp = ISO8601X.unparse_extended(next_key_parsed, true);
-            this._io.log('paging', `Next time-series key will be ${tskp}`);
-          }
-        } catch (_e) {
-          throw new Error('Invalid or corrupt time-series key');
-        }
-      }
-
-      /* Primary exit condition */
-      let is_final_page = (
-        (!is_first_page && key_comparison >= 0) ||
-          (this._ignore_last ? false : record.last == true)
-      );
-
-      /* Supplemental exit condition */
-      if (!results.length) {
+      /* Exit condition: check for 'last' indicator */
+      if (this._ignore_last ? false : record.last == true) {
         is_final_page = true;
       }
 
-      /* Dispatch result */
+      /* Reduce/process result data */
+      results = reduce_callback(record);
+
+      if (!results.length) {
+        this._io.warn('Received zero-length result; stopping');
+        break;
+      }
+
       if (!this._emitter.emit(results, is_first_page, is_final_page)) {
         throw new Error('Result dispatch failed');
       }
 
-      is_first_page = false;
+      /* Slide over */
       prev_key = next_key;
+      next_key = record.next;
 
-      /* Termination */
+      /* Exit condition: compare time-series keys */
+      try {
+
+        /* Tell the user where we are */
+        let next_parsed = ISO8601X.parse_extended(next_key);
+        this._io.log('paging', `Next time-series key is ${next_key}`);
+
+        /* Compare keys */
+        if (!is_first_page) {
+          let prev_parsed = ISO8601X.parse_extended(prev_key);
+
+          if (ISO8601X.compare_extended(prev_parsed, next_parsed) >= 0) {
+            this._io.warn(`Next time-series key ${prev_key} >= ${next_key}`);
+            this._io.warn('Time series keys are non-monotonic; stopping now');
+            is_final_page = true;
+          }
+        }
+      } catch (_e) {
+        throw new Error('Invalid or corrupt time-series key');
+      }
+
+      /* Finish up */
+      error_count = 0;
+      is_first_page = false;
+
       if (is_final_page) {
         break;
       }
@@ -509,14 +303,14 @@ const Client = class extends Base {
       throw new Error('Result dispatch: completion failed');
     }
 
-    this._io.log_level(
-      'success', 'Finished fetching paged results', this.log_level, 0
-    );
-
+    this._io.log('success', 'Finished fetching paged results');
     this.start_key = null;
+
     return true;
   }
 
+  /**
+  **/
   async _paged_request_one (_url, _profile, _start_key, _url_callback) {
 
     let url = _url.slice(); /* Clone */
@@ -546,11 +340,8 @@ const Client = class extends Base {
       url = `${_url}?${qs}`;
     }
 
-    if (this.log_level > 0) {
-      this._io.log('network', `Fetching ${url}`);
-    }
-
     /* HTTPS request */
+    this._io.log('network', `Fetching ${url}`);
     let rv = await request(url);
 
     /* Propagate response headers */
@@ -566,6 +357,8 @@ const Client = class extends Base {
 
   /** Generic threading functions **/
 
+  /**
+  **/
   _reparent (_targets, _refs, _target_properties) {
 
     let refhash = {};
@@ -593,6 +386,8 @@ const Client = class extends Base {
     return this;
   }
 
+  /**
+  **/
   _reparent_one (_target, _refhash, _key) {
 
     /* Only reparent/expand if asked to */
@@ -635,6 +430,8 @@ const Client = class extends Base {
     return _target;
   }
 
+  /**
+  **/
   _reparent_all (_o) {
 
     /* Expand author */
@@ -657,6 +454,8 @@ const Client = class extends Base {
 
   /** Paged API request callbacks **/
 
+  /**
+  **/
   async _request_feed (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -667,6 +466,8 @@ const Client = class extends Base {
     return this._reparent_all(rv);
   }
 
+  /**
+  **/
   async _request_creator (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -677,6 +478,8 @@ const Client = class extends Base {
     return this._reparent_all(rv);
   }
 
+  /**
+  **/
   async _request_following (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -686,6 +489,8 @@ const Client = class extends Base {
     return await response.json();
   }
 
+  /**
+  **/
   async _request_followers (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -695,6 +500,8 @@ const Client = class extends Base {
     return await response.json();
   }
 
+  /**
+  **/
   async _request_user_comments (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -713,6 +520,8 @@ const Client = class extends Base {
     return rv;
   }
 
+  /**
+  **/
   async _request_post_comments (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -725,6 +534,8 @@ const Client = class extends Base {
     return this._reparent_all(await response.json());
   }
 
+  /**
+  **/
   async _request_tag (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -736,6 +547,8 @@ const Client = class extends Base {
     return this._reparent_all(await response.json());
   }
 
+  /**
+  **/
   async _request_votes (_profile, _start_ts) {
 
     const response = await this._paged_request_one(
@@ -745,6 +558,8 @@ const Client = class extends Base {
     return this._reparent_all(await response.json());
   }
 
+  /**
+  **/
   async _request_affiliate_news (_profile, _start_ts) {
 
     let profile = Object.assign((_profile || {}), {
@@ -758,6 +573,8 @@ const Client = class extends Base {
     return await response.json();
   }
 
+  /**
+  **/
   async _request_moderation(_profile, _start_ts) {
 
     let profile = Object.assign((_profile || {}), {
@@ -773,15 +590,15 @@ const Client = class extends Base {
 
   /** Generic single-request functions **/
 
+  /**
+  **/
   async _request_generic (_method, _url, _headers, _final_fn, _body) {
 
     let request = this._create_client(
       this._create_extra_headers(_headers), _method
     );
 
-    if (this.log_level > 0) {
-      this._io.log('network', `Fetching ${_url}`);
-    }
+    this._io.log('network', `Fetching ${_url}`);
 
     /* HTTPS request */
     await this._ratelimit.wait();
@@ -792,6 +609,8 @@ const Client = class extends Base {
     return json;
   }
 
+  /**
+  **/
   async _request_print_generic (_array, _is_silent) {
 
     if (!_is_silent) {
@@ -801,6 +620,246 @@ const Client = class extends Base {
     }
 
     return Promise.resolve();
+  }
+
+  /** API endpoints **/
+
+  /**
+  **/
+  async profile (_username, _is_silent) {
+
+    let h = {};
+    let url = 'v1/profile';
+
+    if (_username) {
+      h.username = _username;
+      url = `${url}?username=${encodeURIComponent(_username)}`;
+    }
+
+    return await this._request_generic(
+      'GET', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ], _is_silent);
+      }
+    );
+  }
+
+  /**
+  **/
+  async post (_id, _is_silent) {
+
+    let h = { id: _id };
+    let url = `v1/post?id=${encodeURIComponent(_id)}`;
+
+    return await this._request_generic(
+      'GET', url, h, async (_r, _json) => {
+        /* Reparent */
+        _json.posts = [ _json.post ];
+        this._reparent_all(_json);
+        return await this._request_print_generic(_json.posts, _is_silent);
+      }
+    );
+  }
+
+  /**
+  **/
+  async write_post (_profile, _text) {
+
+    let url = 'v1/post';
+
+    let body = {
+      body: _text,
+      parent: null, links: [], state: 4
+    }
+
+    return await this._request_generic(
+      'POST', url, _profile, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  /**
+  **/
+  async delete_post (_profile, _id) {
+
+    let body = { id: _id };
+    let url = 'v1/post/delete';
+
+    return await this._request_generic(
+      'POST', url, _profile, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  /**
+  **/
+  async follow (_username) {
+
+    let body = { username: _username }; /* Yikes */
+    let h = { referrer: `https://${this.domain}/feed` };
+    let url = `v1/follow?username=${encodeURIComponent(_username)}`;
+
+    return await this._request_generic(
+      'POST', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  /**
+  **/
+  async unfollow (_username) {
+
+    let body = { username: _username }; /* Yikes */
+    let h = { referrer: `https://${this.domain}/feed` };
+    let url = `v1/follow/delete?username=${encodeURIComponent(_username)}`;
+
+    return await this._request_generic(
+      'POST', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  /**
+  **/
+  async mute (_username) {
+
+    let body = { username: _username }; /* Yikes */
+    let h = { referrer: `https://${this.domain}/feed` };
+    let url = `v1/user/mute?username=${encodeURIComponent(_username)}`;
+
+    return await this._request_generic(
+      'POST', url, h, async (_r, _json) => {
+        return await this._request_print_generic([ _json ]);
+      }, body
+    );
+  }
+
+  /**
+  **/
+  async print_feed (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_feed', 'posts'
+    );
+  }
+
+  /**
+  **/
+  async print_posts (_profile) {
+
+    this.page_size = 20;
+
+    return this._paged_generic_print(
+      _profile, '_request_creator', 'posts'
+    );
+  }
+
+  /**
+  **/
+  async print_following (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_following', 'followees'
+    );
+  }
+
+  /**
+  **/
+  async print_followers (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_followers', 'followers'
+    );
+  }
+
+  /**
+  **/
+  async print_user_comments (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_user_comments', 'comments'
+    );
+  }
+
+  /**
+  **/
+  async print_post_comments (_id) {
+
+    this.page_size = 10;
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._paged_generic_print(
+      { _id: _id }, '_request_post_comments', 'comments'
+    );
+  }
+
+  /**
+  **/
+  async print_comment_replies (_profile, _id) {
+
+    this.page_size = 10;
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._paged_generic_print(
+      { _id: _id, username: _profile.username },
+        '_request_post_comments', 'comments'
+    );
+  }
+
+  /**
+  **/
+  async print_tag (_profile, _id) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      { tag: _profile.tag }, /* Fix this */
+        '_request_tag', 'posts'
+    );
+  }
+
+  /**
+  **/
+  async print_votes (_profile) {
+
+    this.page_size = 10;
+
+    return this._paged_generic_print(
+      _profile, '_request_votes', 'posts'
+    );
+  }
+
+  /**
+  **/
+  async print_affiliate_news (_profile) {
+
+    this.page_size = 20;
+
+    return this._paged_generic_print(
+      _profile, '_request_affiliate_news', 'links'
+    );
+  }
+
+  /**
+  **/
+  async print_moderation (_profile) {
+
+    this._temporarily_disable_page_size(); /* They do this */
+
+    return this._paged_generic_print(
+      _profile, '_request_moderation', 'comments'
+    );
   }
 };
 

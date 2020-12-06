@@ -103,7 +103,6 @@ const CLI = class extends Base {
       emitter: this._emitter,
       credentials_output: args.o,
       disable_rng_delay: !!args.x,
-      log_level: this._compute_log_level(args),
       expand_fields: this._parse_expand_option(args.e)
     });
 
@@ -243,23 +242,6 @@ const CLI = class extends Base {
     } catch (_e) {
       this._io.fatal(_e.message);
     }
-  }
-
-  _compute_log_level (_args) {
-
-    if (_args.s) {
-      return -1;
-    }
-
-    if (_args.q) {
-      return 0;
-    }
-
-    if (_args.v) {
-      return 2;
-    }
-
-    return 1;
   }
 
   _parse_expand_option (_array) {
