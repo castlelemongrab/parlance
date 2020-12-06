@@ -245,19 +245,20 @@ const Client = class extends Base {
         continue;
       }
 
+      /* Reduce into results array */
+      results = reduce_callback(record);
+
+      if (!results.length) {
+        this._io.log('paging', 'Received zero-length result; stopping');
+        break;
+      }
+
       /* Exit condition: check for 'last' indicator */
       if (this._ignore_last ? false : record.last == true) {
         is_final_page = true;
       }
 
-      /* Reduce/process result data */
-      results = reduce_callback(record);
-
-      if (!results.length) {
-        this._io.warn('Received zero-length result; stopping');
-        break;
-      }
-
+      /* Emit result data */
       if (!this._emitter.emit(results, is_first_page, is_final_page)) {
         throw new Error('Result dispatch failed');
       }
@@ -274,11 +275,11 @@ const Client = class extends Base {
         this._io.log('paging', `Next time-series key is ${next_key}`);
 
         /* Compare keys */
-        if (!is_first_page) {
+        if (prev_key != null) {
           let prev_parsed = ISO8601X.parse_extended(prev_key);
 
           if (ISO8601X.compare_extended(prev_parsed, next_parsed) >= 0) {
-            this._io.warn(`Next time-series key ${prev_key} >= ${next_key}`);
+            this._io.warn(`Next time-series key ${next_key} >= ${prev_key}`);
             this._io.warn('Time series keys are non-monotonic; stopping now');
             is_final_page = true;
           }
