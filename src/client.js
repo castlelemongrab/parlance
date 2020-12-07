@@ -272,15 +272,15 @@ const Client = class extends Base {
 
         /* Tell the user where we are */
         let next_parsed = ISO8601X.parse_extended(next_key);
-        this._io.log('paging', `Next time-series key is ${next_key}`);
+        this._io.log('paging', `Next time-series key is ${next_key}`, 1);
 
         /* Compare keys */
         if (prev_key != null) {
           let prev_parsed = ISO8601X.parse_extended(prev_key);
 
           if (ISO8601X.compare_extended(prev_parsed, next_parsed) >= 0) {
-            this._io.warn(`Next time-series key ${next_key} >= ${prev_key}`);
-            this._io.warn('Time series keys are non-monotonic; stopping now');
+            this._io.warn(`Next key ${next_key} is later than ${prev_key}`);
+            this._io.warn('Time-series has gone non-monotonic; stopping now');
             is_final_page = true;
           }
         }
@@ -304,7 +304,7 @@ const Client = class extends Base {
       throw new Error('Result dispatch: completion failed');
     }
 
-    this._io.log('success', 'Finished fetching paged results');
+    this._io.log('success', 'Finished fetching paged results', 1);
     this.start_key = null;
 
     return true;
@@ -341,6 +341,9 @@ const Client = class extends Base {
       url = `${_url}?${qs}`;
     }
 
+    /* Minimize impact on service */
+    await this._ratelimit.wait();
+
     /* HTTPS request */
     this._io.log('network', `Fetching ${url}`);
     let rv = await request(url);
@@ -348,9 +351,6 @@ const Client = class extends Base {
     /* Propagate response headers */
     this._ratelimit.headers = rv.headers;
     await this._session.set_headers(rv.headers);
-
-    /* Minimize impact on service */
-    await this._ratelimit.wait();
 
     /* Finished */
     return rv;
@@ -599,11 +599,12 @@ const Client = class extends Base {
       this._create_extra_headers(_headers), _method
     );
 
-    this._io.log('network', `Fetching ${_url}`);
-
     /* HTTPS request */
     await this._ratelimit.wait();
+    this._io.log('network', `Fetching ${_url}`);
     const r = await request(_url, _body);
+
+    /* Reduce to JSON */
     const json = await r.json();
     await _final_fn(r, json);
 

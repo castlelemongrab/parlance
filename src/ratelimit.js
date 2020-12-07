@@ -85,11 +85,11 @@ const Ratelimit = class extends Base {
       this._io.log('ratelimit', `Limit hit; waiting until ${deadline}`);
 
       await this._wait_until(this.reset_time);
-      this._io.log('ratelimit', `Reset time reached; resuming operation`);
+      this._io.log('ratelimit', `Reset time reached; resuming operation`, 2);
     }
 
     if (_force_rng_delay || !this._disable_rng_delay) {
-      this._io.log('ratelimit', `Waiting for randomized delay to expire`);
+      this._io.log('ratelimit', `Waiting for randomized delay to expire`, 2);
       await this._wait_rng();
     }
 
@@ -150,17 +150,15 @@ const Ratelimit = class extends Base {
       now = ISO8601X.unparse(Date.now());
       ts = ISO8601X.unparse(this.reset_time);
     } catch (_e) {
-      ts = 'unknown';
-      ts = 'currently invalid';
+      throw new Error('Peer provided an invalid ratelimit reset time');
     }
 
     this._io.log(
-      'ratelimit', `Current time is ${now}`
+      'ratelimit', `Current time is ${now}`, 2
     );
 
     this._io.log(
-      'ratelimit',
-        `${this.remaining}/${this.limit} remaining; reset time is ${ts}`
+      'ratelimit', `${this.remaining}/${this.limit}; reset time is ${ts}`, 1
     );
   }
 };
