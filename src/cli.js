@@ -15,12 +15,15 @@ const Credentials = require('./credentials');
 **/
 const CLI = class extends Base {
 
+  /**
+  **/
   constructor (_options) {
 
     super(_options);
 
     this._io = new IO.Node();
     this._args = new Arguments();
+
     return this;
   }
 
@@ -43,6 +46,8 @@ const CLI = class extends Base {
     return false;
   }
 
+  /**
+  **/
   async run () {
 
     let profile = {}, config = {};
@@ -50,6 +55,8 @@ const CLI = class extends Base {
 
     let page_size = null;
     let guarded_option_used = false;
+
+    this._io.log_level = this._compute_log_level(args);
 
     if (args.n) {
       this._io.warn('Use --confirm-no-delay to truly disable delays');
@@ -103,9 +110,13 @@ const CLI = class extends Base {
       emitter: this._emitter,
       credentials_output: args.o,
       disable_rng_delay: !!args.x,
-      log_level: this._compute_log_level(args),
       expand_fields: this._parse_expand_option(args.e)
     });
+
+    /* Support arbitrary start keys */
+    if (args.k) {
+      client.start_key = decodeURIComponent(args.k).replace('@', '_');
+    }
 
     /* Try to be human-friendly */
     let wrote_credentials = false;
@@ -231,6 +242,8 @@ const CLI = class extends Base {
     return true;
   }
 
+  /**
+  **/
   async _ensure_post_exists (_client, _id) {
 
     try {
@@ -240,23 +253,8 @@ const CLI = class extends Base {
     }
   }
 
-  _compute_log_level (_args) {
-
-    if (_args.s) {
-      return -1;
-    }
-
-    if (_args.q) {
-      return 0;
-    }
-
-    if (_args.v) {
-      return 2;
-    }
-
-    return 1;
-  }
-
+  /**
+  **/
   _parse_expand_option (_array) {
 
     let rv = {};
@@ -303,6 +301,26 @@ const CLI = class extends Base {
 
     return rv;
   }
+
+  /**
+  **/
+  _compute_log_level(_args) {
+
+    let log_level = 0;
+
+    if (_args.d) {
+      log_level = 2;
+    } else if (_args.v) {
+      log_level = 1;
+    } else if (_args.q) {
+      log_level = -1;
+    } else if (_args.s) {
+      log_level = -2;
+    }
+
+    return log_level;
+  }
+
 };
 
 /* Export symbols */

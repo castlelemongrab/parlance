@@ -76,6 +76,13 @@ const Arguments = class extends Base {
         }
       )
       .option(
+        'k', {
+          type: 'string',
+          alias: 'start-key',
+          describe: 'Specify a time-series start/resume key'
+        }
+      )
+      .option(
         'l', {
           type: 'boolean',
           alias: 'ignore-last',
@@ -113,18 +120,26 @@ const Arguments = class extends Base {
         }
       )
       .option(
+        'd', {
+          type: 'boolean',
+          alias: 'debug',
+          conflicts: [ 'q', 's', 'v' ],
+          describe: 'Print all debug information to stderr'
+        }
+      )
+      .option(
         'v', {
           type: 'boolean',
           alias: 'verbose',
-          conflicts: [ 'q', 's' ],
-          describe: 'Print debug information to stderr'
+          conflicts: [ 'q', 's', 'd' ],
+          describe: 'Print verbose information to stderr'
         }
       )
       .option(
         'q', {
           type: 'boolean',
           alias: 'quiet',
-          conflicts: [ 'v', 's' ],
+          conflicts: [ 'v', 's', 'd' ],
           describe: 'Print less information to stderr'
         }
       )
@@ -132,7 +147,7 @@ const Arguments = class extends Base {
         's', {
           type: 'boolean',
           alias: 'silent',
-          conflicts: [ 'v', 'q' ],
+          conflicts: [ 'v', 'q', 'd' ],
           describe: 'Print absolutely no information to stderr'
         }
       )

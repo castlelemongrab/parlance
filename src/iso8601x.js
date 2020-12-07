@@ -116,7 +116,7 @@ const ISO8601X = {
         throw new Error('Invalid extended sequence number format');
       }
 
-      rv = rv.replace(/Z$/, `Z@${ns}`);
+      rv = rv.replace(/Z$/, `Z_${ns}`);
     }
 
     return rv;

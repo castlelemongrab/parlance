@@ -27,7 +27,7 @@ const JSONEmitter = class extends Emitter {
   finish (_options) {
 
     super.finish(_options);
-    this.io.stdout("\n]\n");
+    this.io.stdout("]\n");
 
     return this;
   }

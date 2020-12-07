@@ -21,8 +21,7 @@ const Ratelimit = class extends Base {
 
     this._rng_divisor = 48;
     this._headers = (_headers || {});
-    this._io = (this.options.io || new IO.Base());
-    this._log_level = (this.options.log_level || 1);
+    this._io = (this.options.io || new IO.Node());
     this._disable_rng_delay = !!this.options.disable_rng_delay;
 
     return this.reset();
@@ -33,11 +32,6 @@ const Ratelimit = class extends Base {
     this._limit = this.limit_default;
     this._remaining = this.remaining_default;
     this._reset_time = this.reset_time_default;
-  }
-
-  get log_level () {
-
-    return this._log_level;
   }
 
   get limit () {
@@ -83,25 +77,19 @@ const Ratelimit = class extends Base {
     return this;
   }
 
-  async wait () {
+  async wait (_force_rng_delay) {
 
     if (this.remaining <= 0) {
 
       let deadline = ISO8601X.unparse(this.reset_time);
-
-      if (this.log_level > 0) {
-        this._io.log('ratelimit', `Limit hit; waiting until ${deadline}`);
-      }
+      this._io.log('ratelimit', `Limit hit; waiting until ${deadline}`);
 
       await this._wait_until(this.reset_time);
-
-      if (this.log_level > 0) {
-        this._io.log('ratelimit', `Reset time reached; resuming operation`);
-      }
+      this._io.log('ratelimit', `Reset time reached; resuming operation`, 2);
     }
 
-    if (!this._disable_rng_delay) {
-      this._io.log('ratelimit', `Waiting for randomized delay to expire`);
+    if (_force_rng_delay || !this._disable_rng_delay) {
+      this._io.log('ratelimit', `Waiting for randomized delay to expire`, 2);
       await this._wait_rng();
     }
 
@@ -150,10 +138,7 @@ const Ratelimit = class extends Base {
       this._reset_time = (isNaN(n) ? this.reset_time_default : n * 1000);
     }
 
-    if (this.log_level > 1) {
-      this._log_ratelimit_data();
-    }
-
+    this._log_ratelimit_data();
     return this;
   }
 
@@ -165,17 +150,15 @@ const Ratelimit = class extends Base {
       now = ISO8601X.unparse(Date.now());
       ts = ISO8601X.unparse(this.reset_time);
     } catch (_e) {
-      ts = 'unknown';
-      ts = 'currently invalid';
+      throw new Error('Peer provided an invalid ratelimit reset time');
     }
 
     this._io.log(
-      'ratelimit', `Current time is ${now}`
+      'ratelimit', `Current time is ${now}`, 2
     );
 
     this._io.log(
-      'ratelimit',
-        `${this.remaining}/${this.limit} remaining; reset time is ${ts}`
+      'ratelimit', `${this.remaining}/${this.limit}; reset time is ${ts}`, 1
     );
   }
 };

@@ -21,7 +21,6 @@ const Session = class extends Base {
 
     this._headers = _headers;
     this._credentials = _credentials;
-    this._log_level = (this.options.log_level || 1);
     this._io = (this.options.output || new IO.Node());
     this._output_file = this.options.credentials_output;
 
@@ -77,9 +76,7 @@ const Session = class extends Base {
           this._output_file,
             jsdump.parse(this._credentials.toObject()) + "\n"
         );
-        this._io.log_level(
-          'credentials', 'Credentials file was updated', this.log_level, 0
-        );
+        this._io.log('credentials', 'New file has been written to disk');
       } catch (_e) {
         this._io.fatal('Failed to update credentials file');
       }
