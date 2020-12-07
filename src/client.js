@@ -79,6 +79,20 @@ const Client = class extends Base {
 
   /**
   **/
+  get end_key() {
+
+    return this._end_key;
+  }
+
+  /**
+  **/
+  set end_key(_end_key) {
+
+    this._end_key = (_end_key || null);
+  }
+
+  /**
+  **/
   get domain () {
 
     return this._domain;
@@ -206,6 +220,7 @@ const Client = class extends Base {
     let results = [];
     let error_count = 0;
     let prev_key = null, next_key = this.start_key;
+    let end_parsed = this.end_key == null ? null : ISO8601X.parse_extended(this.end_key);
     let is_first_page = true, is_final_page = false;
     let reduce_callback = (_reduce_callback || ((_x) => _x));
 
@@ -248,6 +263,7 @@ const Client = class extends Base {
       /* Reduce into results array */
       results = reduce_callback(record);
 
+    /* Exit condition: no results */
       if (!results.length) {
         this._io.log('paging', 'Received zero-length result; stopping');
         break;
@@ -278,10 +294,17 @@ const Client = class extends Base {
         if (prev_key != null) {
           let prev_parsed = ISO8601X.parse_extended(prev_key);
 
+          /* Exit condition: non-monotonicity */
           if (ISO8601X.compare_extended(prev_parsed, next_parsed) >= 0) {
             this._io.warn(`Next key ${next_key} is later than ${prev_key}`);
             this._io.warn('Time-series has gone non-monotonic; stopping now');
             is_final_page = true;
+          }
+
+          /* Exit condition: passing the end key */
+          if (end_parsed != null && ISO8601X.compare_extended(end_parsed, next_parsed) <= 0) {
+            is_final_page = true;
+            this._io.warn('Next end key found!');
           }
         }
       } catch (_e) {
