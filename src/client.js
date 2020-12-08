@@ -24,7 +24,7 @@ const Client = class extends Base {
     super(_options);
 
     this._io = (this.options.io || new IO.Node());
-    this._retry_limit = (this.options.retry_limit || 5);
+    this._retry_limit = (this.options.retry_limit || 10);
     this._expand_fields = (this.options.expand_fields || {});
     this._emitter = (this.options.emitter || new Emitter.Default());
 
@@ -273,8 +273,8 @@ const Client = class extends Base {
         this._io.log('network', _e.message);
         this._io.log('network', `Retrying request (attempt ${error_count})`);
 
-        /* Force ratelimiting delay */
-        await this._ratelimit.wait(true);
+        /* Force randomized exponential backoff */
+        await this._ratelimit.wait(true, true);
         continue;
       }
 
@@ -384,9 +384,6 @@ const Client = class extends Base {
       url = `${_url}?${qs}`;
     }
 
-    /* Minimize impact on service */
-    await this._ratelimit.wait();
-
     /* HTTPS request */
     this._io.log('network', `Fetching ${url}`);
     let rv = await request(url);
@@ -394,6 +391,9 @@ const Client = class extends Base {
     /* Propagate response headers */
     this._ratelimit.headers = rv.headers;
     await this._session.set_headers(rv.headers);
+
+    /* Minimize impact on service */
+    await this._ratelimit.wait();
 
     /* Finished */
     return rv;

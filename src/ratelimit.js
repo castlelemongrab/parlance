@@ -19,7 +19,6 @@ const Ratelimit = class extends Base {
     /* To do: this probably isn't ideal */
     this._crypto = require('crypto');
 
-    this._rng_divisor = 48;
     this._headers = (_headers || {});
     this._io = (this.options.io || new IO.Node());
     this._disable_rng_delay = !!this.options.disable_rng_delay;
@@ -28,6 +27,9 @@ const Ratelimit = class extends Base {
   }
 
   reset () {
+
+    this._rng_divisor = 48;
+    this._multiplier = 1000;
 
     this._limit = this.limit_default;
     this._remaining = this.remaining_default;
@@ -77,7 +79,7 @@ const Ratelimit = class extends Base {
     return this;
   }
 
-  async wait (_force_rng_delay) {
+  async wait (_force_rng_delay, _use_exponential_backoff) {
 
     if (this.remaining <= 0) {
 
@@ -90,7 +92,7 @@ const Ratelimit = class extends Base {
 
     if (_force_rng_delay || !this._disable_rng_delay) {
       this._io.log('ratelimit', `Waiting for randomized delay to expire`, 2);
-      await this._wait_rng();
+      await this._wait_rng(_use_exponential_backoff);
     }
 
     return this;
@@ -108,7 +110,17 @@ const Ratelimit = class extends Base {
     });
   }
 
-  async _wait_rng () {
+  async _wait_rng (_use_exponential_backoff) {
+
+    if (_use_exponential_backoff) {
+      this._multiplier *= 2;
+    } else {
+      this._multiplier = 1000;
+    }
+
+    let delay = Math.floor(
+      (this._crypto.randomBytes(1)[0] / this._rng_divisor) * this._multiplier
+    );
 
     return new Promise((_resolve) => {
       setTimeout(_resolve, Math.floor(
