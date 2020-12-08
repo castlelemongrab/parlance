@@ -114,8 +114,8 @@ const CLI = class extends Base {
     });
 
     /* Support arbitrary start keys */
-    if (args.k) {
-      client.start_key = decodeURIComponent(args.k).replace('@', '_');
+    if (args.S) {
+      client.start_key = decodeURIComponent(args.S).replace('@', '_');
     }
 
     /* Support arbitrary end keys */

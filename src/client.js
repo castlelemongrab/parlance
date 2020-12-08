@@ -219,10 +219,28 @@ const Client = class extends Base {
     let record = {};
     let results = [];
     let error_count = 0;
-    let prev_key = null, next_key = this.start_key;
-    let end_parsed = this.end_key == null ? null : ISO8601X.parse_extended(this.end_key);
+    let prev_key = null, next_key = null;
+    let start_parsed = null, end_parsed = null;
     let is_first_page = true, is_final_page = false;
     let reduce_callback = (_reduce_callback || ((_x) => _x));
+
+    /* Support for time-series constraints:
+        These options allow the caller to specify start and/or end
+        keys for paged requests. For the start key, we rely the server's
+        `startkey` HTTP option. For the end key, we correctly avoid a scary
+        database's `endkey` HTTP option and just use what we already know. */
+
+    try {
+      if (this.start_key) {
+        start_parsed = ISO8601X.parse_extended(this.start_key);
+        next_key = ISO8601X.unparse_extended(start_parsed, true);
+      }
+      if (this.end_key) {
+        end_parsed = ISO8601X.parse_extended(this.end_key);
+      }
+    } catch (_e) {
+      throw Error('Malformed start and/or end time-series key');
+    }
 
     if (!_request_callback) {
       throw new Error('Request callback required');
@@ -302,9 +320,11 @@ const Client = class extends Base {
           }
 
           /* Exit condition: passing the end key */
-          if (end_parsed != null && ISO8601X.compare_extended(end_parsed, next_parsed) <= 0) {
-            is_final_page = true;
-            this._io.warn('The end key has been passed! Stopping...');
+          if (end_parsed != null) {
+            if (ISO8601X.compare_extended(end_parsed, next_parsed) <= 0) {
+              is_final_page = true;
+              this._io.log('paging', 'Time-series end key found; stopping');
+            }
           }
         }
       } catch (_e) {
@@ -327,7 +347,7 @@ const Client = class extends Base {
       throw new Error('Result dispatch: completion failed');
     }
 
-    this._io.log('success', 'Finished fetching paged results', 1);
+    this._io.log('success', 'Finished fetching paged results');
     this.start_key = null;
 
     return true;

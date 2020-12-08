@@ -11,7 +11,7 @@ Installation and Configuration
 ------------------------------
 
 You'll need at least Node.js v8.17.0 (Carbon LTS) to run Parlance – although
-we recommend using the latest available stable version (currently v14.2.0).
+we recommend using the latest available stable version (currently v15.3.0).
 
 First, run `npm install -g @castlelemongrab/parlance` to fetch the software
 and all required dependencies. After installation completes, run `parlance`
@@ -61,7 +61,7 @@ Options:
   --format-options       Provide format/type-specific options           [string]
   -c, --credentials      MST/JST tokens   [string] [default: "config/auth.json"]
   -o, --credentials-out  Output file for client credentials             [string]
-  -k, --start-key        Specify a time-series start/resume key         [string]
+  -S, --start-key        Specify a time-series start/resume key         [string]
   -E, --end-key          Specify a time-series end/halt key             [string]
   -l, --ignore-last      Rely solely upon time comparisons             [boolean]
   -n, --no-delay         Disable the failsafe rate-limiter             [boolean]
