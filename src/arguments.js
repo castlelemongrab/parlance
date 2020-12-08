@@ -83,6 +83,13 @@ const Arguments = class extends Base {
         }
       )
       .option(
+        'E', {
+          type: 'string',
+          alias: 'end-key',
+          describe: 'Specify a time-series end/halt key'
+        }
+      )
+      .option(
         'l', {
           type: 'boolean',
           alias: 'ignore-last',

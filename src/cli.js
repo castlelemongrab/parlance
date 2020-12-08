@@ -118,6 +118,11 @@ const CLI = class extends Base {
       client.start_key = decodeURIComponent(args.k).replace('@', '_');
     }
 
+    /* Support arbitrary end keys */
+    if (args.E) {
+      client.end_key = decodeURIComponent(args.E).replace('@', '_');
+    }
+
     /* Try to be human-friendly */
     let wrote_credentials = false;
     let mst = decodeURIComponent(config.mst);
