@@ -263,7 +263,7 @@ const Client = class extends Base {
       /* Reduce into results array */
       results = reduce_callback(record);
 
-    /* Exit condition: no results */
+      /* Exit condition: no results */
       if (!results.length) {
         this._io.log('paging', 'Received zero-length result; stopping');
         break;
@@ -304,7 +304,7 @@ const Client = class extends Base {
           /* Exit condition: passing the end key */
           if (end_parsed != null && ISO8601X.compare_extended(end_parsed, next_parsed) <= 0) {
             is_final_page = true;
-            this._io.warn('Next end key found!');
+            this._io.warn('The end key has been passed! Stopping...');
           }
         }
       } catch (_e) {
