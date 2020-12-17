@@ -127,7 +127,7 @@ const Ratelimit = class extends Base {
       (this._crypto.randomBytes(1)[0] / this._rng_divisor) * this._multiplier
     );
 
-    this._io.log('ratelimit', `Random delay waiting ${delay / 1000}s`, 2);
+    this._io.log('ratelimit', `Random delay waiting ${delay / 1000}s`, 1);
     return new Promise((_resolve) => setTimeout(_resolve, delay));
   }
 

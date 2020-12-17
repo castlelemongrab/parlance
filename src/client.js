@@ -338,7 +338,7 @@ const Client = class extends Base {
 
         /* Tell the user where we are */
         let next_parsed = ISO8601X.parse_extended(next_key);
-        this._io.log('paging', `Next time-series key is ${next_key}`, 1);
+        this._io.log('paging', `Next time-series key is ${next_key}`, 2);
 
         /* Compare keys */
         if (prev_key != null) {
