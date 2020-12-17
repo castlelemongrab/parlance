@@ -239,7 +239,8 @@ const CLI = class extends Base {
         break;
 
       case 'moderation':
-        await client.print_moderation();
+        profile = await client.profile(null, true);
+        await client.print_moderation(profile);
         break;
 
       default:

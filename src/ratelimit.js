@@ -77,6 +77,11 @@ const Ratelimit = class extends Base {
     return this._headers;
   }
 
+  set remaining (_remaining) {
+
+    this._remaining = _remaining;
+  }
+
   set headers (_headers) {
 
     this._headers = (_headers || {});
@@ -87,7 +92,7 @@ const Ratelimit = class extends Base {
 
   async wait (_force_rng_delay, _use_exponential_backoff) {
 
-    if (this.remaining <= 0) {
+    if (this.remaining <= 1) {
 
       let deadline = ISO8601X.unparse(this.reset_time);
       this._io.log('ratelimit', `Limit hit; waiting until ${deadline}`);

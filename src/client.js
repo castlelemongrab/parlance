@@ -625,7 +625,7 @@ const Client = class extends Base {
   async _request_affiliate_news (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/discover/news', profile, _start_ts, {
+      'v1/discover/news', _query, _start_ts, {
         referrer: `https://${this.domain}/discover`
       }
     );
@@ -638,7 +638,7 @@ const Client = class extends Base {
   async _request_moderation(_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/moderation/pending', profile, _start_ts, {
+      'v1/moderation/pending', _query, _start_ts, {
         referrer: `https://${this.domain}/moderation`
       }
     );
