@@ -38,7 +38,6 @@ const run_process = async (_file, _argv) => {
 
 module.exports = {
   run_process: run_process,
-  define_factories: define_factories,
-  init_fixture_test: init_fixture_test
+  define_factories: define_factories
 };
 

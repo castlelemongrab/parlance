@@ -360,6 +360,9 @@ const Client = class extends Base {
           }
         }
       } catch (_e) {
+        this._io.log('paging', 'API returned an invalid time-series key', 2);
+        this._io.log('paging', `Previous key is currently ${prev_key}`, 2);
+        this._io.log('paging', `Start/next key is currently ${next_key}`, 2);
         throw new Error('Invalid or corrupt time-series key');
       }
 
