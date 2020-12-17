@@ -29,11 +29,17 @@ const Ratelimit = class extends Base {
   reset () {
 
     this._rng_divisor = 48;
-    this._multiplier = 1000;
-
     this._limit = this.limit_default;
     this._remaining = this.remaining_default;
     this._reset_time = this.reset_time_default;
+
+    return this.reset_rng_multiplier();
+  }
+
+  reset_rng_multiplier () {
+
+    this._multiplier = 1000;
+    return this;
   }
 
   get limit () {
@@ -91,7 +97,6 @@ const Ratelimit = class extends Base {
     }
 
     if (_force_rng_delay || !this._disable_rng_delay) {
-      this._io.log('ratelimit', `Waiting for randomized delay to expire`, 2);
       await this._wait_rng(_use_exponential_backoff);
     }
 
@@ -122,11 +127,8 @@ const Ratelimit = class extends Base {
       (this._crypto.randomBytes(1)[0] / this._rng_divisor) * this._multiplier
     );
 
-    return new Promise((_resolve) => {
-      setTimeout(_resolve, Math.floor(
-        (this._crypto.randomBytes(1)[0] / this._rng_divisor) * 1000
-      ));
-    });
+    this._io.log('ratelimit', `Random delay waiting ${delay / 1000}s`, 2);
+    return new Promise((_resolve) => setTimeout(_resolve, delay));
   }
 
   _update_ratelimit_data () {
@@ -156,10 +158,9 @@ const Ratelimit = class extends Base {
 
   _log_ratelimit_data () {
 
-    let ts, now;
+    let ts, now = ISO8601X.unparse(Date.now());
 
     try {
-      now = ISO8601X.unparse(Date.now());
       ts = ISO8601X.unparse(this.reset_time);
     } catch (_e) {
       throw new Error('Peer provided an invalid ratelimit reset time');

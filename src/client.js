@@ -34,7 +34,7 @@ const Client = class extends Base {
     );
 
     this._credentials = _credentials;
-    this._page_size_temporarily_disabled = false;
+    this._page_size_disabled = false;
     this._ignore_last = !!this.options.ignore_last;
     this._domain = (this.options.domain || 'parler.com');
     this._url = (this.options.url || `https://api.${this.domain}/`);
@@ -173,21 +173,21 @@ const Client = class extends Base {
 
   /**
   **/
-  _create_extra_headers (_args) {
+  _create_headers (_options) {
 
-    let args = (_args || {});
+    let o = (_options || {});
 
     let rv = {
       'Accept-Language': 'en-us',
-      'Referrer': (_args.referrer || `https://${this.domain}`)
+      'Referrer': (o.referrer || `https://${this.domain}`)
     };
 
-    if (args.username) {
-      rv.Referrer += `/profile/${encodeURIComponent(args.username)}/posts`;
-    } else if (args.id) {
-      rv.Referrer += `/post-view?q=${encodeURIComponent(args.id)}`;
-    } else if (args.tag) {
-      rv.Referrer += `/?hashtag=${encodeURIComponent(args.tag)}`;
+    if (o.username) {
+      rv.Referrer += `/profile/${encodeURIComponent(o.username)}/posts`;
+    } else if (o.id) {
+      rv.Referrer += `/post-view?q=${encodeURIComponent(o.id)}`;
+    } else if (o.tag) {
+      rv.Referrer += `/?hashtag=${encodeURIComponent(o.tag)}`;
     }
 
     return rv;
@@ -197,24 +197,55 @@ const Client = class extends Base {
 
   /**
   **/
-  _temporarily_disable_page_size () {
+  disable_page_size () {
 
-    this._page_size_temporarily_disabled = true;
+    this._page_size_disabled = true;
     return this;
   }
 
   /**
   **/
-  async _paged_generic_print (_profile, _fn_name, _key) {
+  enable_page_size () {
+
+    this._page_size_disabled = false;
+    return this;
+  }
+
+  /**
+   **/
+  _object_to_querystring_fragment (_obj) {
+
+    let rv = '';
+    let o = (_obj || {});
+
+    for (let k in o) {
+
+      if (o[k] == null) {
+        continue;
+      }
+
+      if (rv != '') {
+        rv += '&';
+      }
+
+      rv += `${k}=${encodeURIComponent(o[k])}`;
+    }
+
+    return rv;
+  }
+
+  /**
+  **/
+  async _paged_generic_print (_query, _fn_name, _key) {
 
     return await this._paged_request(
-      _profile, this[_fn_name].bind(this), (_o) => (_o[_key] || [])
+      _query, this[_fn_name].bind(this), (_o) => (_o[_key] || [])
     );
   }
 
   /**
   **/
-  async _paged_request (_profile, _request_callback, _reduce_callback) {
+  async _paged_request (_query, _request_callback, _reduce_callback) {
 
     let record = {};
     let results = [];
@@ -261,7 +292,7 @@ const Client = class extends Base {
       try {
 
         /* Actual HTTP request happens here */
-        record = await _request_callback(_profile, next_key);
+        record = await _request_callback(_query, next_key);
 
       } catch (_e) {
 
@@ -280,6 +311,7 @@ const Client = class extends Base {
 
       /* Reduce into results array */
       results = reduce_callback(record);
+      this._ratelimit.reset_rng_multiplier();
 
       /* Exit condition: no results */
       if (!results.length) {
@@ -340,9 +372,6 @@ const Client = class extends Base {
       }
     }
 
-    /* Some APIs don't use the limit parameter */
-    this._page_size_temporarily_disabled = false;
-
     if (!this._emitter.finish()) {
       throw new Error('Result dispatch: completion failed');
     }
@@ -355,36 +384,31 @@ const Client = class extends Base {
 
   /**
   **/
-  async _paged_request_one (_url, _profile, _start_key, _url_callback) {
+  async _paged_request_one (_url, _query, _start_key, _options) {
 
-    let url = _url.slice(); /* Clone */
+    let qs = {};
+    let url = _url;
 
-    let request = this._create_client(
-      this._create_extra_headers(_profile)
-    );
+    /* Amend query */
+    let query = Object.assign({}, _query); /* Clone */
 
-    let url_callback = (
-      _url_callback || ((_p) => {
-        return (_p._id ? `id=${encodeURIComponent(_p._id)}` : null);
-      })
-    );
+    if (_start_key != null) {
+      query.startkey = _start_key;
+    };
 
-    let qs = (url_callback(_profile || {}) || '');
-
-    /* Some APIs don't use the limit parameter */
-    if (!this._page_size_temporarily_disabled) {
-      qs = `${qs}&limit=${encodeURIComponent(this.page_size)}`;
-    }
-
-    if (_start_key) {
-      qs += `&startkey=${encodeURIComponent(_start_key)}`;
+    if (!this._page_size_disabled) {
+      query.limit = this.page_size;
     }
 
     if (qs) {
-      url = `${_url}?${qs}`;
+      url += `?${this._object_to_querystring_fragment(query)}`;
     }
 
     /* HTTPS request */
+    let request = this._create_client(
+      this._create_headers(_options)
+    );
+
     this._io.log('network', `Fetching ${url}`);
     let rv = await request(url);
 
@@ -500,10 +524,10 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_feed (_profile, _start_ts) {
+  async _request_feed (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/feed', _profile, _start_ts, () => null
+      'v1/feed', _query, _start_ts
     );
 
     let rv = await response.json();
@@ -512,10 +536,10 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_creator (_profile, _start_ts) {
+  async _request_creator (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/post/creator', _profile, _start_ts
+      'v1/post/creator', _query, _start_ts
     );
 
     let rv = await response.json();
@@ -524,10 +548,10 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_following (_profile, _start_ts) {
+  async _request_following (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/follow/following', _profile, _start_ts
+      'v1/follow/following', _query, _start_ts
     );
 
     return await response.json();
@@ -535,10 +559,10 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_followers (_profile, _start_ts) {
+  async _request_followers (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/follow/followers', _profile, _start_ts
+      'v1/follow/followers', _query, _start_ts
     );
 
     return await response.json();
@@ -546,12 +570,10 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_user_comments (_profile, _start_ts) {
+  async _request_user_comments (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/comment/creator', _profile, _start_ts, (_profile) => {
-        return `username=${encodeURIComponent(_profile.username)}`;
-      }
+      'v1/comment/creator', _query, _start_ts
     );
 
     let rv = await response.json();
@@ -566,12 +588,10 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_post_comments (_profile, _start_ts) {
+  async _request_post_comments (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/comment', _profile, _start_ts, (_profile) => {
-        return `id=${encodeURIComponent(_profile._id)}&reverse=true`;
-      }
+      'v1/comment', _query, _start_ts
     );
 
     /* No refdata currently; might show up later */
@@ -580,38 +600,34 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_tag (_profile, _start_ts) {
+  async _request_tags (_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/post/hashtag', _profile, _start_ts, (_profile) => {
-        return `tag=${encodeURIComponent(_profile.tag)}`;
+      'v1/post/hashtag', _query, _start_ts
+    );
+
+    return this._reparent_all(await response.json());
+  }
+
+  /**
+  **/
+  async _request_votes (_query, _start_ts) {
+
+    const response = await this._paged_request_one(
+      'v1/post/creator/liked', _query, _start_ts
+    );
+
+    return this._reparent_all(await response.json());
+  }
+
+  /**
+  **/
+  async _request_affiliate_news (_query, _start_ts) {
+
+    const response = await this._paged_request_one(
+      'v1/discover/news', profile, _start_ts, {
+        referrer: `https://${this.domain}/discover`
       }
-    );
-
-    return this._reparent_all(await response.json());
-  }
-
-  /**
-  **/
-  async _request_votes (_profile, _start_ts) {
-
-    const response = await this._paged_request_one(
-      'v1/post/creator/liked', _profile, _start_ts
-    );
-
-    return this._reparent_all(await response.json());
-  }
-
-  /**
-  **/
-  async _request_affiliate_news (_profile, _start_ts) {
-
-    let profile = Object.assign((_profile || {}), {
-      referrer: `https://${this.domain}/discover`
-    });
-
-    const response = await this._paged_request_one(
-      'v1/discover/news', profile, _start_ts
     );
 
     return await response.json();
@@ -619,14 +635,12 @@ const Client = class extends Base {
 
   /**
   **/
-  async _request_moderation(_profile, _start_ts) {
-
-    let profile = Object.assign((_profile || {}), {
-      referrer: `https://${this.domain}/moderation`
-    });
+  async _request_moderation(_query, _start_ts) {
 
     const response = await this._paged_request_one(
-      'v1/moderation/pending', profile, _start_ts
+      'v1/moderation/pending', profile, _start_ts, {
+        referrer: `https://${this.domain}/moderation`
+      }
     );
 
     return await response.json();
@@ -638,8 +652,9 @@ const Client = class extends Base {
   **/
   async _request_generic (_method, _url, _headers, _final_fn, _body) {
 
+    /* Create a new `bent` instance */
     let request = this._create_client(
-      this._create_extra_headers(_headers), _method
+      this._create_headers(_headers), _method
     );
 
     /* HTTPS request */
@@ -697,9 +712,7 @@ const Client = class extends Base {
 
     return await this._request_generic(
       'GET', url, h, async (_r, _json) => {
-        /* Reparent */
-        _json.posts = [ _json.post ];
-        this._reparent_all(_json);
+        _json.posts = [ _json.post ]; this._reparent_all(_json);
         return await this._request_print_generic(_json.posts, _is_silent);
       }
     );
@@ -707,7 +720,7 @@ const Client = class extends Base {
 
   /**
   **/
-  async write_post (_profile, _text) {
+  async write_post (_query, _text) {
 
     let url = 'v1/post';
 
@@ -717,7 +730,7 @@ const Client = class extends Base {
     }
 
     return await this._request_generic(
-      'POST', url, _profile, async (_r, _json) => {
+      'POST', url, _query, async (_r, _json) => {
         return await this._request_print_generic([ _json ]);
       }, body
     );
@@ -725,13 +738,13 @@ const Client = class extends Base {
 
   /**
   **/
-  async delete_post (_profile, _id) {
+  async delete_post (_query, _id) {
 
     let body = { id: _id };
     let url = 'v1/post/delete';
 
     return await this._request_generic(
-      'POST', url, _profile, async (_r, _json) => {
+      'POST', url, _query, async (_r, _json) => {
         return await this._request_print_generic([ _json ]);
       }, body
     );
@@ -789,7 +802,8 @@ const Client = class extends Base {
     this.page_size = 10;
 
     return this._paged_generic_print(
-      _profile, '_request_feed', 'posts'
+      { id: _profile._id },
+        '_request_feed', 'posts'
     );
   }
 
@@ -800,7 +814,8 @@ const Client = class extends Base {
     this.page_size = 20;
 
     return this._paged_generic_print(
-      _profile, '_request_creator', 'posts'
+      { id: _profile._id },
+        '_request_creator', 'posts'
     );
   }
 
@@ -811,7 +826,8 @@ const Client = class extends Base {
     this.page_size = 10;
 
     return this._paged_generic_print(
-      _profile, '_request_following', 'followees'
+      { id: _profile._id },
+        '_request_following', 'followees'
     );
   }
 
@@ -822,7 +838,8 @@ const Client = class extends Base {
     this.page_size = 10;
 
     return this._paged_generic_print(
-      _profile, '_request_followers', 'followers'
+      { id: _profile._id },
+        '_request_followers', 'followers'
     );
   }
 
@@ -833,7 +850,8 @@ const Client = class extends Base {
     this.page_size = 10;
 
     return this._paged_generic_print(
-      _profile, '_request_user_comments', 'comments'
+      { id: _profile._id, username: _profile.username },
+        '_request_user_comments', 'comments'
     );
   }
 
@@ -842,11 +860,15 @@ const Client = class extends Base {
   async print_post_comments (_id) {
 
     this.page_size = 10;
-    this._temporarily_disable_page_size(); /* They do this */
+    this.disable_page_size(); /* They do this */
 
-    return this._paged_generic_print(
-      { _id: _id }, '_request_post_comments', 'comments'
+    let rv = this._paged_generic_print(
+      { id: _id, reverse: true },
+        '_request_post_comments', 'comments'
     );
+
+    this.enable_page_size();
+    return rv;
   }
 
   /**
@@ -854,23 +876,25 @@ const Client = class extends Base {
   async print_comment_replies (_profile, _id) {
 
     this.page_size = 10;
-    this._temporarily_disable_page_size(); /* They do this */
+    this.disable_page_size(); /* They do this */
 
-    return this._paged_generic_print(
-      { _id: _id, username: _profile.username },
+    let rv = this._paged_generic_print(
+      { id: _id, username: _profile.username },
         '_request_post_comments', 'comments'
     );
+
+    this.enable_page_size();
+    return rv;
   }
 
   /**
   **/
-  async print_tag (_profile, _id) {
+  async print_tags (_tag_name) {
 
     this.page_size = 10;
 
     return this._paged_generic_print(
-      { tag: _profile.tag }, /* Fix this */
-        '_request_tag', 'posts'
+      { tag: _tag_name }, '_request_tags', 'posts'
     );
   }
 
@@ -881,7 +905,8 @@ const Client = class extends Base {
     this.page_size = 10;
 
     return this._paged_generic_print(
-      _profile, '_request_votes', 'posts'
+      { id: _profile._id },
+        '_request_votes', 'posts'
     );
   }
 
@@ -892,7 +917,8 @@ const Client = class extends Base {
     this.page_size = 20;
 
     return this._paged_generic_print(
-      _profile, '_request_affiliate_news', 'links'
+      { id: _profile._id },
+        '_request_affiliate_news', 'links'
     );
   }
 
@@ -900,11 +926,15 @@ const Client = class extends Base {
   **/
   async print_moderation (_profile) {
 
-    this._temporarily_disable_page_size(); /* They do this */
+    this.disable_page_size(); /* They do this */
 
-    return this._paged_generic_print(
-      _profile, '_request_moderation', 'comments'
+    let rv = this._paged_generic_print(
+      { id: _profile._id },
+        '_request_moderation', 'comments'
     );
+
+    this.enable_page_size();
+    return rv;
   }
 };
 

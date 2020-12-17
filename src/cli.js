@@ -23,6 +23,7 @@ const CLI = class extends Base {
 
     this._io = new IO.Node();
     this._args = new Arguments();
+    this._client = this._credentials = null;
 
     return this;
   }
@@ -101,9 +102,11 @@ const CLI = class extends Base {
       }
     }
 
-    let credentials = new Credentials(config.mst, config.jst);
+    let credentials = this._credentials = new Credentials(
+      config.mst, config.jst
+    );
 
-    let client = new Client(credentials, {
+    let client = this._client = new Client(credentials, {
       io: this._io,
       page_size: page_size,
       ignore_last: !!args.i,
@@ -140,7 +143,7 @@ const CLI = class extends Base {
 
       case 'init':
         if (args.c !== this._args.default_credentials_path) {
-          this._io.fatal('Credentials are unnecessary; please use -o');
+          this._io.fatal('Credential input is unnecessary; please use -o');
         }
         if (!args.o) {
           this._io.fatal('Refusing to continue without an output file');
@@ -175,7 +178,7 @@ const CLI = class extends Base {
 
       case 'comments':
         if (args.i) {
-          await this._ensure_post_exists(client, args.i); /* Yikes */
+          await this._ensure_post_exists(args.i); /* Yikes */
           await client.print_post_comments(args.i);
         } else if (args.r) {
           profile = await client.profile(null, true);
@@ -197,8 +200,9 @@ const CLI = class extends Base {
         break;
 
       case 'tag':
+      case 'tags':
         profile = await client.profile(args.u, true);
-        await client.print_tag({ tag: args.t });
+        await client.print_tags(args.t);
         break;
 
       case 'votes':
@@ -218,7 +222,7 @@ const CLI = class extends Base {
 
       case 'delete':
         profile = await client.profile(null, true);
-        await this._ensure_post_exists(client, args.i); /* Yikes */
+        await this._ensure_post_exists(args.i); /* Yikes */
         await client.delete_post(profile, args.i);
         break;
 
@@ -249,10 +253,10 @@ const CLI = class extends Base {
 
   /**
   **/
-  async _ensure_post_exists (_client, _id) {
+  async _ensure_post_exists (_id) {
 
     try {
-      await _client.post(_id, true);
+      await this._client.post(_id, true);
     } catch (_e) {
       this._io.fatal(_e.message);
     }

@@ -261,7 +261,7 @@ const Arguments = class extends Base {
         }
       )
       .command(
-        'tag', 'Fetch all posts mentioning a hashtag', {
+        'tags', 'Fetch all posts mentioning a hashtag', {
           t: {
             alias: 'tag',
             type: 'string',

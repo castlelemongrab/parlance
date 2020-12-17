@@ -44,7 +44,7 @@ Commands:
   parlance following   Fetch all users followed by a user
   parlance followers   Fetch all followers of a user
   parlance comments    Fetch all comments for a user, post, or comment
-  parlance tag         Fetch all posts mentioning a hashtag
+  parlance tags        Fetch all posts mentioning a hashtag
   parlance votes       Fetch all votes made by a user
   parlance write       Post a new message to your account
   parlance delete      Delete an existing message from your account
