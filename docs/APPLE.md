@@ -15,15 +15,15 @@ removing content that encourages illegal activity and poses a serious risk to
 the health and safety of users in direct violation of your own terms of
 service, found here:
 
-	https://legal.parler.com/documents/Elaboration-on-Guidelines.pdf
+https://legal.parler.com/documents/Elaboration-on-Guidelines.pdf
 
-	Examples of these complaints can be viewed on these links:
+Examples of these complaints can be viewed on these links:
 
-		https://twitter.com/slpng_giants/status/1347190280492089344?s=20
-		https://twitter.com/EmmanueLoree/status/1347260055410896897/photo/1
-		https://twitter.com/Lovedrea/status/1347263797614972928?s=20
-		https://twitter.com/Wilmographer/status/1346714000554303489?s=20
-		https://twitter.com/pjg0014/status/1347265499210592256?s=20
+	https://twitter.com/slpng_giants/status/1347190280492089344?s=20
+	https://twitter.com/EmmanueLoree/status/1347260055410896897/photo/1
+	https://twitter.com/Lovedrea/status/1347263797614972928?s=20
+	https://twitter.com/Wilmographer/status/1346714000554303489?s=20
+	https://twitter.com/pjg0014/status/1347265499210592256?s=20
 
 Content of this dangerous and harmful nature is not appropriate for the App
 Store. As you know from prior conversations with App Review, Apple requires
@@ -42,15 +42,15 @@ harmful content.
 
 We have now rejected your app for the App Store Review Guidelines detailed below.
 
-	_Guideline 1.1_ - Safety - Objectionable Content: We found that your app
-  includes content that some users may find upsetting, offensive, or otherwise
-  objectionable. Specifically, we found direct threats of violence and calls to
-  incite lawless action.
+_Guideline 1.1_ - Safety - Objectionable Content: We found that your app
+includes content that some users may find upsetting, offensive, or otherwise
+objectionable. Specifically, we found direct threats of violence and calls to
+incite lawless action.
 
 
-  _Guideline 1.2_ - Safety - User Generated Content: Your app enables the
-	display of user-generated content but does not have sufficient precautions in
-	place to effectively manage objectionable content present in your app.
+_Guideline 1.2_ - Safety - User Generated Content: Your app enables the
+display of user-generated content but does not have sufficient precautions in
+place to effectively manage objectionable content present in your app.
 
 See the attached screenshots for more details.
 
