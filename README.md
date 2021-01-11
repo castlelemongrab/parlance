@@ -36,7 +36,7 @@ Parler's API servers – they are no longer in service. Should Parler reappear
 elsewhere, we will restore compatibility in order to allow researchers, law
 enforcement, and the public to conduct additional postmortem analysis.
 
-For balance, the authors have included an statement from Parler below.
+For balance, the authors have included a statement from Parler below.
 
 > "Every vendor, from text message services to email providers to  
 > our lawyers, all ditched us on the same day." – John Matze, CEO
