@@ -28,19 +28,6 @@ login process is unlikely to be accepted.
 Results for all subcommands are printed to standard output as a JSON-encoded
 array of objects.
 
-Downtime Due To Parler's Material Involvement in Seditious Conspiracy
----------------------------------------------------------------------
-
-Due to the events of January 6th, 2021, Parlance is currently unable to contact
-Parler's API servers – they are no longer in service. Should Parler reappear
-elsewhere, we will restore compatibility in order to allow researchers, law
-enforcement, and the public to conduct additional postmortem analysis.
-
-For balance, the authors have included a statement from Parler below.
-
-> "Every vendor, from text message services to email providers to  
-> our lawyers, all ditched us on the same day." – John Matze, CEO
-
 Usage
 -----
 
