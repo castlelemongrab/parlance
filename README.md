@@ -2,9 +2,24 @@
 Parlance
 ========
 
-Parlance is a client library for Parler – a "free speech" social network that
+Parlance was a client library for Parler – a "free speech" social network that
 accepts real money to buy "influence" points to boost organic non-advertising
-content. The authors will refrain from commenting on this business model.
+content. The authors refrained from commenting on this business model.
+
+Deprecation
+-----------
+
+As predicted, the design of Parler's API proved insecure and inadequate given
+the platform's scalability and performance goals. Parler recently proved this by
+discarding and deprecating their API server in full, opting to return to HTML 5 markup
+delivered directly from a PHP-based backend.
+
+As a result, the software herein is no longer functional. This outcome was expected.
+Additional user-friendly options for researching the Parler and Gab platforms
+are currently under consideration.
+
+The Parlance team apologizes for the inconvenience. The Parlance team additionally
+thanks Parler for taking a comically insecure API offline permenantly.
 
 Installation and Configuration
 ------------------------------
